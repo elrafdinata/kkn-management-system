@@ -978,3 +978,299 @@ flowchart TD
 
 - Bagian 1 sampai 5 (aktor, FR, NFR, use case, diagram, ringkasan business rules): Dibuat.
 - Menunggu persetujuan pemilik proyek sebelum Phase 2 (System Design). Tidak ada coding sebelum analisis dan desain disetujui.
+ 
+# PHASE 2 - SYSTEM DESIGN
+
+## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
+
+Terakhir diperbarui: 2026-11-06
+Status: Dibuat (draf desain, menunggu persetujuan pemilik proyek). Belum ada kode, belum ada migration, database tidak diubah.
+
+## 1. Keputusan Desain yang Sudah Disetujui
+
+| Topik             | Keputusan                                                                                                                                                                                           |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend          | Blade + Bootstrap 5. Kecocokan versi dengan Vite diperiksa di Phase 3 sebelum dipasang.                                                                                                             |
+| Identitas login   | Username (bukan email). Kolom username ditambah lewat migration di Phase 4. NIM dan nomor HP tidak dipakai.                                                                                         |
+| Sesi QR           | Satu sesi per tanggal. Satu QR dipindai semua anggota. Satu absensi berhasil per anggota per tanggal. Admin dapat menutup sesi lebih awal.                                                          |
+| Kirim absensi     | Sekali kirim: GPS, QR, dan selfie dikirim sekaligus dalam satu permintaan. Server memvalidasi semuanya lalu menyimpan dalam satu transaction. Jika satu langkah gagal, tidak ada absensi tersimpan. |
+| Status Menunggu   | Tidak disimpan di database. Dihitung: hari ini hari wajib dan belum ada baris absensi.                                                                                                              |
+| Kategori          | Tiga kategori tetap (Stay, Shift Malam, Weekend). Hari wajibnya ditetapkan di kode. Admin mengubah kategori anggota, bukan isi kategori.                                                            |
+| Snapshot kategori | Kategori anggota disimpan di baris absensi agar laporan lama tidak berubah saat kategori diubah.                                                                                                    |
+| Token QR          | Disimpan sebagai hash, bukan token asli.                                                                                                                                                            |
+
+## 2. Rancangan Database (Direncanakan, belum dibuat)
+
+```mermaid
+erDiagram
+    users ||--o{ attendances : "memiliki"
+    users ||--o{ attendance_sessions : "dibuat oleh admin"
+    users ||--o{ activity_logs : "dilakukan oleh admin"
+    attendance_sessions ||--o{ attendances : "dipakai untuk"
+
+    users {
+        bigint id PK
+        string name
+        string username UK
+        string password
+        string role
+        string schedule_category
+        boolean is_active
+    }
+    attendance_sessions {
+        bigint id PK
+        date session_date
+        string token_hash UK
+        datetime opens_at
+        datetime expires_at
+        datetime closed_at
+        bigint created_by FK
+    }
+    attendances {
+        bigint id PK
+        bigint user_id FK
+        date attendance_date
+        string status
+        string category_snapshot
+        bigint attendance_session_id FK
+        datetime attended_at
+        decimal latitude
+        decimal longitude
+        float accuracy_m
+        float distance_m
+        string selfie_path
+    }
+    settings {
+        bigint id PK
+        string key UK
+        text value
+    }
+    activity_logs {
+        bigint id PK
+        bigint user_id FK
+        string action
+        text description
+        string ip_address
+        datetime created_at
+    }
+```
+
+### 2.1 users (tabel bawaan, kolom ditambah di Phase 4)
+
+| Kolom baru        | Keterangan                                      |
+| ----------------- | ----------------------------------------------- |
+| username          | Unik, dipakai untuk login.                      |
+| role              | admin atau anggota.                             |
+| schedule_category | stay, shift_malam, weekend. Kosong untuk admin. |
+| is_active         | Akun dapat dinonaktifkan tanpa dihapus.         |
+| email             | Dijadikan boleh kosong.                         |
+
+### 2.2 settings
+
+| Kunci                           | Isi                                                                        |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| posko_latitude, posko_longitude | Kosong sampai pemilik proyek memberi koordinat di Phase 5. Tidak dikarang. |
+| geofence_radius_m               | 30                                                                         |
+| max_gps_accuracy_m              | Batas akurasi GPS. Angka diputuskan di Phase 5.                            |
+
+### 2.3 attendance_sessions
+
+Satu baris per sesi QR. token_hash menyimpan hash token. expires_at mengikuti durasi yang disetujui di Phase 7. closed_at diisi jika admin menutup sesi lebih awal.
+
+### 2.4 attendances
+
+- Satu baris per anggota per tanggal wajib.
+- Unique (user_id, attendance_date) menegakkan satu absensi per anggota per tanggal.
+- status hanya hadir atau tidak_hadir.
+- Baris hadir dibuat saat anggota absen. Baris tidak_hadir dibuat oleh Scheduler dengan kolom lokasi, selfie, dan sesi kosong.
+- selfie_path menunjuk ke storage privat.
+
+### 2.5 activity_logs
+
+Mencatat tindakan admin: buat akun, reset password, ubah kategori, ubah pengaturan, buat atau tutup QR, ekspor laporan.
+
+### 2.6 Tidak dimasukkan (sengaja)
+
+- Log percobaan login di luar radius: tidak ada di aturan bisnis.
+- Tabel kategori terpisah: tiga kategori tetap.
+
+## 3. Route dan Middleware (Direncanakan, belum dibuat)
+
+### 3.1 Semua pengguna
+
+| Method   | URL       | Fungsi                                      | Middleware            |
+| -------- | --------- | ------------------------------------------- | --------------------- |
+| GET      | /         | Arahkan ke login atau dashboard sesuai role | -                     |
+| GET      | /login    | Form login                                  | guest                 |
+| POST     | /login    | Proses login (anggota: cek geofence)        | guest, throttle login |
+| POST     | /logout   | Logout                                      | auth                  |
+| GET, PUT | /password | Ganti password sendiri                      | auth, aktif           |
+
+### 3.2 Administrator (prefix /admin; middleware auth, aktif, role:admin)
+
+| Method    | URL                                      | Fungsi                               |
+| --------- | ---------------------------------------- | ------------------------------------ |
+| GET       | /admin/dashboard                         | Statistik ringkas                    |
+| GET, POST | /admin/anggota, /admin/anggota/create    | Daftar dan buat akun anggota         |
+| GET, PUT  | /admin/anggota/{user}/edit               | Ubah data dan kategori jadwal        |
+| POST      | /admin/anggota/{user}/reset-password     | Reset password                       |
+| PATCH     | /admin/anggota/{user}/aktif              | Aktifkan atau nonaktifkan akun       |
+| GET, PUT  | /admin/pengaturan                        | Koordinat posko, radius, akurasi GPS |
+| GET, POST | /admin/sesi-absensi                      | Daftar dan buat sesi QR              |
+| GET       | /admin/sesi-absensi/{sesi}               | Tampilkan QR                         |
+| POST      | /admin/sesi-absensi/{sesi}/tutup         | Tutup sesi lebih awal                |
+| GET       | /admin/absensi                           | Riwayat semua anggota dengan filter  |
+| GET       | /admin/absensi/{absensi}                 | Detail: lokasi, QR, selfie           |
+| GET       | /admin/absensi/{absensi}/selfie          | Menampilkan selfie (privat)          |
+| GET       | /admin/laporan                           | Laporan dan filter                   |
+| GET       | /admin/laporan/export/excel, /export/pdf | Ekspor                               |
+| GET       | /admin/log-aktivitas                     | Activity log                         |
+
+### 3.3 Anggota (prefix /anggota; middleware auth, aktif, role:anggota)
+
+| Method | URL                       | Fungsi                                     | Tambahan              |
+| ------ | ------------------------- | ------------------------------------------ | --------------------- |
+| GET    | /anggota/dashboard        | Status hari ini, profil, statistik pribadi | -                     |
+| GET    | /anggota/absensi          | Halaman absensi (GPS, scan QR, selfie)     | -                     |
+| POST   | /anggota/absensi          | Kirim absensi sekaligus                    | throttle absensi      |
+| GET    | /anggota/riwayat          | Riwayat pribadi                            | -                     |
+| GET    | /anggota/selfie/{absensi} | Selfie milik sendiri                       | Policy: hanya pemilik |
+
+### 3.4 Middleware dan pengaman
+
+| Lapisan            | Fungsi                                                             |
+| ------------------ | ------------------------------------------------------------------ |
+| auth               | Harus sudah login.                                                 |
+| aktif              | Menolak akun dengan is_active = false, termasuk yang sedang login. |
+| role               | Memisahkan area admin dan anggota. Akses silang mendapat 403.      |
+| Policy Absensi     | Anggota hanya dapat membuka selfie dan data miliknya.              |
+| Rate limit login   | Usulan: 5 percobaan per menit per kombinasi username dan IP.       |
+| Rate limit absensi | Usulan: 10 kiriman per menit per pengguna.                         |
+
+Angka rate limit adalah usulan awal dan dapat diubah saat pengujian di Phase 13.
+
+### 3.5 Catatan desain
+
+1. Geofence bukan middleware di semua halaman. Pengecekan jarak (Haversine) dilakukan oleh satu service yang dipanggil saat login dan saat kirim absensi. Anggota yang sudah login boleh membuka dashboard dari mana saja, tetapi tidak dapat absen di luar radius.
+2. Selfie tidak pernah diakses lewat URL publik, hanya lewat route yang memeriksa hak akses. Karena sudah ada route bawaan storage/{path}, konfigurasi disk file diperiksa di Phase 3 agar selfie disimpan di disk privat yang tidak dilayani route itu.
+
+### 3.6 Scheduler
+
+Satu perintah terjadwal (misalnya attendance:close-day) berjalan setiap hari sesaat setelah tengah malam WIB dan menetapkan Tidak Hadir untuk hari yang sudah berakhir. Perintah ini juga menyusul hari yang terlewat. Dijadwalkan di routes/console.php.
+
+## 4. Rancangan Antarmuka (UI/UX)
+
+### 4.1 Prinsip
+
+- Mobile-first: satu kolom di smartphone, tata letak melebar di laptop.
+- Bootstrap 5 dengan komponen standar (kartu, form, badge, tabel, navbar, offcanvas).
+- Tombol utama besar (tinggi minimal sekitar 48 px) agar mudah ditekan satu tangan.
+- Semua teks dan pesan berbahasa Indonesia.
+- Status tidak hanya dibedakan warna, tetapi juga teks dan ikon.
+
+### 4.2 Status
+
+| Status      | Warna  | Ikon    | Teks        |
+| ----------- | ------ | ------- | ----------- |
+| Hadir       | Hijau  | Centang | Hadir       |
+| Menunggu    | Kuning | Jam     | Menunggu    |
+| Tidak Hadir | Merah  | Silang  | Tidak Hadir |
+
+Hari tidak wajib ditampilkan netral (abu-abu) dengan teks "Hari ini bukan hari wajib". Tidak ada tombol absensi pada hari itu.
+
+### 4.3 Halaman anggota
+
+| Halaman        | Isi                                                                                                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Login          | Username, password, tombol Masuk. Sebelum kirim, browser meminta izin lokasi. Pesan error jelas.                                                                               |
+| Dashboard      | Kartu status hari ini (badge), info hari wajib, tombol Absen besar (hanya hari wajib dan belum hadir), statistik pribadi ringkas (hari wajib, Hadir, Tidak Hadir, persentase). |
+| Absensi        | Tiga langkah berurutan di satu layar: 1) Lokasi, 2) Scan QR, 3) Selfie dengan preview. Tombol Kirim aktif setelah ketiganya siap.                                              |
+| Riwayat        | Daftar kartu per tanggal (status, jam, foto kecil milik sendiri) dengan pagination.                                                                                            |
+| Ganti password | Password lama, baru, konfirmasi.                                                                                                                                               |
+
+Sketsa dashboard anggota (smartphone):
+
+```
++--------------------------+
+| KKN Kelompok 30   [Menu] |
++--------------------------+
+| Halo, <nama>             |
+| Kategori: Stay           |
++--------------------------+
+| Hari ini                 |
+| [Menunggu]               |
+| Hari ini hari wajib      |
+| [      ABSEN SEKARANG   ]|
++--------------------------+
+| Statistik saya           |
+| Wajib 12 | Hadir 11      |
+| Tidak Hadir 1 | 92%      |
++--------------------------+
+| Riwayat terbaru ...      |
++--------------------------+
+```
+
+Sketsa halaman absensi:
+
+```
++--------------------------+
+| Absensi                  |
++--------------------------+
+| 1 Lokasi     [Siap]      |
+|   Jarak ke posko: OK     |
+| 2 Scan QR    [Siap]      |
+| 3 Selfie     [Preview]   |
+|   (foto dari kamera)     |
++--------------------------+
+| [        KIRIM          ]|
++--------------------------+
+```
+
+Angka pada sketsa hanya contoh tata letak, bukan data nyata.
+
+### 4.4 Halaman administrator
+
+Di laptop: sidebar tetap. Di smartphone: sidebar menjadi menu geser (offcanvas).
+
+| Halaman       | Isi                                                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard     | Kartu statistik: jumlah anggota, Hadir hari ini, Menunggu, Tidak Hadir. Status sesi QR hari ini.                                   |
+| Anggota       | Tabel anggota (nama, username, kategori, aktif), tombol tambah, ubah, reset password, nonaktifkan.                                 |
+| Sesi Absensi  | Buat sesi untuk tanggal tertentu, tampilkan QR ukuran besar di layar, tombol tutup sesi.                                           |
+| Absensi       | Tabel riwayat dengan filter tanggal, nama, kategori, status. Klik baris untuk detail (lokasi, selfie, QR).                         |
+| Laporan       | Pilih jenis (harian, mingguan, bulanan, per anggota, per kategori, rentang tanggal), tampilkan hasil, tombol ekspor Excel dan PDF. |
+| Pengaturan    | Koordinat posko, radius, batas akurasi GPS.                                                                                        |
+| Log aktivitas | Daftar tindakan admin dengan pagination.                                                                                           |
+
+### 4.5 Pesan error utama (bahasa Indonesia)
+
+| Kondisi               | Pesan                                                         |
+| --------------------- | ------------------------------------------------------------- |
+| Izin lokasi ditolak   | Izin lokasi wajib diaktifkan untuk melanjutkan.               |
+| Akurasi GPS buruk     | Sinyal lokasi kurang akurat. Coba lagi di tempat terbuka.     |
+| Di luar radius        | Anda berada di luar area posko.                               |
+| QR tidak valid        | QR tidak valid atau sudah kedaluwarsa.                        |
+| Sudah absen           | Absensi hari ini sudah tercatat.                              |
+| Kamera tidak tersedia | Kamera tidak dapat diakses. Absensi tidak dapat diselesaikan. |
+| Foto tidak valid      | Foto tidak valid. Ambil ulang selfie.                         |
+| Akun nonaktif         | Akun Anda dinonaktifkan. Hubungi admin.                       |
+| Login gagal           | Username atau password salah.                                 |
+
+## 5. Keputusan Terbuka
+
+| Topik                                                                                | Diputuskan di                                              |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| Koordinat posko                                                                      | Phase 5 (dari pemilik proyek, tidak dikarang)              |
+| Batas akurasi GPS                                                                    | Phase 5                                                    |
+| Durasi kedaluwarsa QR                                                                | Phase 7 (rekomendasi dan persetujuan sebelum implementasi) |
+| Library pembuat dan pemindai QR                                                      | Phase 7 (cek kompatibilitas lebih dulu)                    |
+| Batas ukuran dan tipe selfie                                                         | Phase 8                                                    |
+| Cara uji kamera dan GPS di smartphone saat pengembangan (butuh HTTPS atau localhost) | Phase 3                                                    |
+| Konfigurasi disk privat untuk selfie                                                 | Phase 3                                                    |
+| Angka rate limit final                                                               | Phase 13                                                   |
+
+## 6. Status Phase 2
+
+- Rancangan database, route, middleware, scheduler, dan antarmuka: Dibuat.
+- Menunggu persetujuan pemilik proyek. Tidak ada coding sebelum desain disetujui.
+- Setelah disetujui: Phase 3 Project Foundation.
