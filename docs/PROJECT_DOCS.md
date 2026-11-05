@@ -1274,3 +1274,64 @@ Di laptop: sidebar tetap. Di smartphone: sidebar menjadi menu geser (offcanvas).
 - Rancangan database, route, middleware, scheduler, dan antarmuka: Dibuat.
 - Menunggu persetujuan pemilik proyek. Tidak ada coding sebelum desain disetujui.
 - Setelah disetujui: Phase 3 Project Foundation.
+ 
+## CHECKPOINT AKHIR SESI 2026-11-06 (MENGGANTIKAN status lama)
+
+Bagian ini adalah kondisi terbaru. Jika bertentangan dengan Bagian 3 (kondisi proyek), Bagian 8-9 (tujuh dokumen terpisah), atau Bagian 10 (instruksi awal) di dokumen ini, atau dengan bagian lama di PROJECT_DOCS.md yang menulis Phase 0 aktif atau status "Untracked", ikuti bagian ini. Kondisi repository dan kode aktual tetap sumber kebenaran utama.
+
+### Perubahan keputusan pemilik proyek
+
+- Dokumentasi digabung menjadi satu file: docs/PROJECT_DOCS.md. Tujuh file terpisah sudah dihapus. Jangan membuat ulang tujuh file itu.
+- docs/MASTER_PROMPT_v2.md tetap terpisah dan sudah masuk repository PUBLIC. Jangan menulis nama database proyek lain di file mana pun.
+
+### Posisi proyek
+
+- Phase 0 Project Discovery: selesai.
+- Phase 1 System Analysis (SRS: 46 FR, 33 NFR, 14 use case, diagram alur): disetujui. Isi lengkap ada di PROJECT_DOCS.md.
+- Phase 2 System Design (database, route, middleware, scheduler, UI): disetujui. Isi lengkap ada di PROJECT_DOCS.md.
+- Phase 3 Project Foundation: baru dimulai. Baru membaca file, belum ada file kode atau database yang diubah.
+- Git: branch main, commit terakhir yang diketahui f7d860a (Add Phase 2 system design), sudah di-push. Checkpoint ini sendiri belum di-commit saat ditulis.
+
+### Keputusan desain final
+
+- Frontend: Blade + Bootstrap 5.
+- Login memakai username (bukan email). Kolom username ditambah lewat migration di Phase 4. NIM dan nomor HP tidak dipakai.
+- Administrator tidak absen. Hanya 18 anggota KKN yang absen. Total 19 akun (1 admin, 18 anggota). Akun anggota hanya dibuat admin. Anggota boleh mengganti password sendiri.
+- QR: satu sesi per tanggal, satu QR dipindai semua anggota, token disimpan sebagai hash.
+- Absensi dikirim sekaligus (GPS, QR, selfie) dalam satu transaction.
+- Status Menunggu tidak disimpan di database (dihitung). Hanya hadir dan tidak_hadir yang disimpan. Tidak Hadir dibuat oleh Scheduler harian.
+- Tabel attendances punya unique (user_id, attendance_date) dan kolom category_snapshot.
+- Tabel rencana: users (tambahan kolom), settings, attendance_sessions, attendances, activity_logs.
+- Geofence dijalankan oleh service (Haversine) saat login dan saat kirim absensi, bukan middleware di semua halaman.
+- Route: prefix /admin dan /anggota. Middleware: auth, aktif, role, policy Absensi, rate limit login dan absensi.
+
+### Temuan Phase 3 (dibaca langsung dari file pada 2026-11-06)
+
+- package.json: Tailwind CSS 4 (tailwindcss dan @tailwindcss/vite), Vite 8, laravel-vite-plugin 3.1 sudah terpasang. Bootstrap belum terpasang. vite.config.js memakai plugin tailwindcss dan font Instrument Sans.
+- resources/css/app.css: berisi import tailwindcss dan konfigurasi tema. resources/js/app.js: kosong.
+- config/filesystems.php: disk local berakar di storage/app/private dengan serve = true (inilah sumber route bawaan storage/{path}). Disk public berakar di storage/app/public. Perilaku serve = true belum diverifikasi.
+- bootstrap/app.php: daftar middleware masih kosong.
+- config/app.php: timezone masih UTC (baris 68), locale masih en (dari APP_LOCALE).
+- routes/web.php: hanya route / ke view welcome. route:list: 4 route bawaan.
+
+### Keputusan yang harus diambil sebelum mengubah frontend
+
+- Tailwind 4 sudah terpasang, sedangkan keputusan frontend adalah Bootstrap 5. Usulan: ganti Tailwind dengan Bootstrap 5 lewat npm. Periksa kompatibilitas dengan Vite 8 sebelum memasang dan minta persetujuan pemilik proyek.
+- Verifikasi bahwa selfie di disk privat tidak dapat diakses lewat URL publik, sebelum fitur selfie dibuat.
+
+### Rencana Phase 3 (satu langkah kecil per giliran, minta persetujuan sebelum mengubah file)
+
+1. Zona waktu Asia/Jakarta dan locale Indonesia (config/app.php dan nilai env tanpa menampilkan isi .env).
+2. Disk privat untuk selfie.
+3. Ganti Tailwind dengan Bootstrap 5 (setelah cek kompatibilitas).
+4. Layout dasar Blade (mobile-first).
+5. Fondasi role dan middleware (alias di bootstrap/app.php).
+
+Migration kolom users (username, role, schedule_category, is_active) dikerjakan di Phase 4, bukan Phase 3.
+
+### Cara kerja yang diminta pemilik proyek
+
+- Hemat sesi: jangan minta pengecekan berlebihan atau tempel ulang file. Gunakan satu perintah gabungan bila perlu membaca beberapa file.
+- Jika hasil perintah tidak ditempel, katakan belum terbukti dan minta ulang.
+- Untuk commit dan push: jelaskan dampak, lalu beri satu perintah dengan pengaman. Menjalankan perintah itu dihitung sebagai persetujuan eksplisit hanya jika pesan menyatakannya dengan jelas.
+- Langkah pertama sesi baru: baca docs/PROJECT_DOCS.md (terutama checkpoint ini), jalankan git status dan git log --oneline -3, lalu lanjut Phase 3 langkah 1. Tidak perlu audit panjang.
