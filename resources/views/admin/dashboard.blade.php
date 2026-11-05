@@ -11,6 +11,7 @@
             <a href="{{ route('admin.members.index') }}" class="btn btn-primary">Kelola Anggota</a>
             <a href="{{ route('admin.logs.index') }}" class="btn btn-outline-primary">Riwayat Aktivitas</a>
             <a href="{{ route('password.edit') }}" class="btn btn-outline-primary">Ganti Password</a>
+            <a href="{{ route('admin.settings.edit') }}" class="btn btn-outline-primary">Pengaturan Posko</a>
         </div>
         <form method="POST" action="{{ route('logout') }}" class="mt-3">
             @csrf

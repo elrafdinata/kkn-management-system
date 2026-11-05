@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\MemberController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordController;
@@ -36,6 +37,8 @@ Route::middleware(['auth', 'aktif', 'role:admin'])
         Route::patch('/anggota/{member}/status', [MemberController::class, 'toggleStatus'])->name('members.status');
         Route::patch('/anggota/{member}/password', [MemberController::class, 'resetPassword'])->name('members.password');
         Route::get('/riwayat-aktivitas', [ActivityLogController::class, 'index'])->name('logs.index');
+        Route::get('/pengaturan-posko', [SettingController::class, 'edit'])->name('settings.edit');
+        Route::put('/pengaturan-posko', [SettingController::class, 'update'])->name('settings.update');
     });
 
 Route::middleware(['auth', 'aktif', 'role:anggota'])

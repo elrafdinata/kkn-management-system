@@ -10,8 +10,11 @@
                 <h1 class="h4 mb-1">Masuk</h1>
                 <p class="text-muted mb-4">KKN Kelompok 30 UNTARA</p>
 
-                <form method="POST" action="{{ route('login') }}" novalidate>
+                <form method="POST" action="{{ route('login') }}" id="login-form" novalidate>
                     @csrf
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input type="hidden" name="longitude" id="longitude">
+                    <input type="hidden" name="accuracy" id="accuracy">
 
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
@@ -26,10 +29,44 @@
                             class="form-control" autocomplete="current-password" required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100">Masuk</button>
+                    <button type="submit" id="login-button" class="btn btn-primary w-100">Masuk</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+        var form = this;
+        var button = document.getElementById('login-button');
+
+        event.preventDefault();
+        button.disabled = true;
+        button.textContent = 'Memeriksa lokasi...';
+
+        var send = function() {
+            form.submit();
+        };
+
+        if (!navigator.geolocation) {
+            send();
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+                document.getElementById('accuracy').value = position.coords.accuracy;
+                send();
+            },
+            send, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    });
+</script>
 @endsection
