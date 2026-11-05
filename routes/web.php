@@ -1,11 +1,13 @@
 <?php
 
-use App\Http\Controllers\Admin\MemberController;
-use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Auth\LoginController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\MemberController;
+use App\Http\Controllers\Admin\QrController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Anggota\DashboardController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordController;
+use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home');
 
@@ -36,14 +38,20 @@ Route::middleware(['auth', 'aktif', 'role:admin'])
         Route::put('/anggota/{member}', [MemberController::class, 'update'])->name('members.update');
         Route::patch('/anggota/{member}/status', [MemberController::class, 'toggleStatus'])->name('members.status');
         Route::patch('/anggota/{member}/password', [MemberController::class, 'resetPassword'])->name('members.password');
+
         Route::get('/riwayat-aktivitas', [ActivityLogController::class, 'index'])->name('logs.index');
+
         Route::get('/pengaturan-posko', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('/pengaturan-posko', [SettingController::class, 'update'])->name('settings.update');
+
+        Route::get('/qr', [QrController::class, 'show'])->name('qr.show');
+        Route::post('/qr', [QrController::class, 'store'])->name('qr.store');
+        Route::delete('/qr', [QrController::class, 'revoke'])->name('qr.revoke');
     });
 
 Route::middleware(['auth', 'aktif', 'role:anggota'])
     ->prefix('anggota')
     ->name('anggota.')
     ->group(function () {
-        Route::view('/', 'anggota.dashboard')->name('dashboard');
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     });
