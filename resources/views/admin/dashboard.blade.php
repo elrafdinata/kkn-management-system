@@ -7,7 +7,12 @@
     <div class="card-body">
         <h1 class="h4">Dashboard Administrator</h1>
         <p>Masuk sebagai {{ auth()->user()->name }}.</p>
-        <form method="POST" action="{{ route('logout') }}">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('admin.members.index') }}" class="btn btn-primary">Kelola Anggota</a>
+            <a href="{{ route('admin.logs.index') }}" class="btn btn-outline-primary">Riwayat Aktivitas</a>
+            <a href="{{ route('password.edit') }}" class="btn btn-outline-primary">Ganti Password</a>
+        </div>
+        <form method="POST" action="{{ route('logout') }}" class="mt-3">
             @csrf
             <button type="submit" class="btn btn-outline-secondary">Keluar</button>
         </form>

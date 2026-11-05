@@ -1283,70 +1283,105 @@ Bagian ini adalah kondisi terbaru. Jika bertentangan dengan bagian lain di PROJE
 
 - Dokumentasi digabung dalam satu file: docs/PROJECT_DOCS.md. Jangan membuat ulang tujuh file terpisah.
 - docs/MASTER_PROMPT_v2.md tetap terpisah dan ada di repository PUBLIC. Jangan menulis nama database proyek lain di file mana pun.
-- Pemilik proyek meminta tidak ada langkah pengujian per langkah (menghabiskan sesi). Karena itu status "Dibuat" tidak boleh ditulis sebagai "Berhasil" atau "Diuji" tanpa hasil perintah yang ditempel.
+- Jangan sertakan langkah pengujian per langkah (menghabiskan sesi). Pemilik proyek membuka browser sendiri dan menempel hasilnya bila ada masalah.
+- Jangan perbarui PROJECT_DOCS.md dan MASTER_PROMPT_v2.md setiap langkah berhasil. Perbarui hanya saat pemilik proyek berkata sesi hampir habis.
+- Status "Dibuat" tidak boleh ditulis "Berhasil" tanpa bukti (hasil perintah atau tangkapan layar).
 
 ### Posisi proyek
 
-- Phase 0 Project Discovery: selesai.
-- Phase 1 System Analysis: disetujui.
-- Phase 2 System Design: disetujui.
-- Phase 3 Project Foundation: sedang dikerjakan (lihat tabel di bawah).
-- Git: branch main, commit terakhir ed5f7d7 (sudah di-push). Perubahan Phase 3 di bawah BELUM di-commit.
+- Phase 0, 1, 2: selesai dan disetujui.
+- Phase 3 Project Foundation: selesai.
+- Phase 4 Authentication and User Management: sebagian besar selesai. Sisa: ganti password sendiri dan halaman riwayat aktivitas admin.
+- Phase 5 dan seterusnya: belum dimulai.
+- Git: branch main. Commit terakhir 5f5abeb (Add Phase 3 foundation and Phase 4 login, user fields, admin seeder), sudah di-push. Perubahan setelahnya BELUM di-commit (lihat daftar di bawah).
 
-### Status Phase 3
+### Status Phase 3 (selesai)
 
-| Langkah                                  | Status                          | Bukti                                                                                                                                                             |
-| ---------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Zona waktu Asia/Jakarta dan locale id | Berhasil                        | config/app.php baris timezone diubah, APP_LOCALE=id di .env. Terbukti lewat tinker: Asia/Jakarta dan id                                                           |
-| 2. Disk privat selfie                    | Berhasil                        | config/filesystems.php baris 36 serve = false. Route storage/{path} hilang (route:list). Uji akses file privat lewat tinker menghasilkan 403 sebelum perubahan    |
-| 3. Bootstrap 5 menggantikan Tailwind     | Berhasil                        | npm install berhasil (0 vulnerabilities). Build Vite berhasil. Paket: bootstrap 5.3.8, @popperjs/core 2.11.8, sass 1.107.1, vite 8.3.6, laravel-vite-plugin 3.2.1 |
-| 4. Layout Blade mobile-first             | Dibuat, belum dibuka di browser | File dibuat: resources/views/layouts/app.blade.php, resources/views/home.blade.php, route / memakai Route::view. welcome.blade.php dihapus                        |
-| 5. Fondasi role dan middleware           | Belum dimulai                   | -                                                                                                                                                                 |
+| Langkah                                  | Status   | Bukti                                                                                                                                                                                                                                 |
+| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Zona waktu Asia/Jakarta dan locale id | Berhasil | Terbukti lewat tinker: Asia/Jakarta dan id. Nilai timezone ditulis langsung di config/app.php, APP_LOCALE=id di .env                                                                                                                  |
+| 2. Disk privat selfie                    | Berhasil | config/filesystems.php baris 36 serve = false. route:list --path=storage: tidak ada route. Uji akses file privat sebelum perubahan menghasilkan 403                                                                                   |
+| 3. Bootstrap 5 menggantikan Tailwind     | Berhasil | npm install dan npm run build berhasil. bootstrap 5.3.8, @popperjs/core 2.11.8, sass 1.107.1, vite 8.3.6, laravel-vite-plugin 3.2.1. Tailwind, blok font Instrument Sans, dan resources/css/app.css dihapus. Font memakai font sistem |
+| 4. Layout Blade mobile-first             | Berhasil | Halaman beranda tampil di browser (tangkapan layar). Layout di resources/views/layouts/app.blade.php. welcome.blade.php dihapus                                                                                                       |
+| 5. Middleware role dan aktif             | Berhasil | EnsureRole dan EnsureActive di app/Http/Middleware, alias role dan aktif di bootstrap/app.php. Terbukti dipakai: admin lolos ke /admin                                                                                                |
 
-Catatan: selama halaman belum dibuka di browser, jangan menulis "aplikasi dapat berjalan" sebagai fakta.
+### Status Phase 4
 
-### File yang dibuat atau diubah di Phase 3 (belum di-commit)
+| Bagian                                                                                               | Status                                                                                                                            | Bukti                                                                         |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Migration kolom users (username unik, role, schedule_category, is_active, email boleh kosong)        | Berhasil                                                                                                                          | php artisan migrate: 2026_11_06_033249_add_account_fields_to_users_table DONE |
+| Seeder admin dari .env (KKN_ADMIN_NAME, KKN_ADMIN_USERNAME, KKN_ADMIN_PASSWORD lewat config/kkn.php) | Berhasil                                                                                                                          | Login admin berhasil di browser (halaman /admin tampil)                       |
+| Login dan logout (LoginController, rate limit 5 percobaan per username dan IP, kunci 60 detik)       | Login berhasil. Logout, rate limit, redirect tamu ke /login belum diuji                                                           | Tangkapan layar /admin                                                        |
+| Tabel activity_logs, model ActivityLog                                                               | Berhasil                                                                                                                          | Migration dijalankan, halaman anggota berjalan tanpa error                    |
+| Daftar anggota (admin)                                                                               | Berhasil                                                                                                                          | Tangkapan layar /admin/anggota                                                |
+| Tambah akun anggota                                                                                  | Berhasil                                                                                                                          | Akun uji raclraf berhasil dibuat, tampil di daftar                            |
+| Ubah akun, aktif atau nonaktif, reset password oleh admin                                            | Dibuat. Nonaktifkan terbukti (akun raclraf berstatus Nonaktif). Ubah nama atau kategori dan reset password belum dilihat hasilnya | Tangkapan layar daftar anggota                                                |
+| Ganti password sendiri                                                                               | Belum dibuat                                                                                                                      | -                                                                             |
+| Halaman riwayat aktivitas admin                                                                      | Belum dibuat                                                                                                                      | -                                                                             |
 
-- config/app.php (timezone Asia/Jakarta)
-- config/filesystems.php (serve = false)
-- .env (APP_LOCALE=id, tidak masuk Git)
-- package.json (Tailwind dihapus, bootstrap dan sass ditambah), package-lock.json (baru)
-- vite.config.js (plugin Tailwind dan blok font dihapus, input resources/scss/app.scss dan resources/js/app.js)
-- resources/scss/app.scss (baru, impor Bootstrap), resources/js/app.js (impor Bootstrap)
-- resources/css/app.css dihapus
-- resources/views/layouts/app.blade.php dan resources/views/home.blade.php (baru), resources/views/welcome.blade.php dihapus
-- routes/web.php (route / ke view home)
+### Perubahan BELUM di-commit (setelah 5f5abeb)
+
+- database/migrations/\*\_create_activity_logs_table.php (sudah di-migrate)
+- app/Models/ActivityLog.php
+- app/Http/Controllers/Admin/MemberController.php
+- resources/views/admin/members/index.blade.php, create.blade.php, edit.blade.php
+- resources/views/admin/dashboard.blade.php (tombol Kelola Anggota)
+- routes/web.php (route anggota: index, tambah, simpan, ubah, update, status, password)
+- docs/PROJECT_DOCS.md dan docs/MASTER_PROMPT_v2.md (checkpoint ini)
+
+### Hal yang belum dipastikan (periksa di awal sesi)
+
+- resources/views/admin/members/edit.blade.php: baris onsubmit di form status sebaiknya berbunyi onsubmit="return confirm('Yakin mengubah status akun ini?')". Perbaikan ini disarankan tetapi belum dipastikan tersimpan. Garis merah di VS Code hanya peringatan editor.
+- app/Providers/AppServiceProvider.php: Paginator::useBootstrapFive() disarankan tetapi isi file belum dibaca dan belum dipastikan diterapkan. Baru terlihat saat anggota lebih dari 20.
+- bootstrap/app.php: redirectUsersTo disarankan memakai fn (Request $request) => $request->user()?->role === 'admin' ? '/admin' : '/anggota'. Belum dipastikan tersimpan.
+- Akun uji raclraf (anggota, kategori stay, berstatus Nonaktif) masih ada di database. Nama yang dipakai sama dengan nama admin. Boleh dibiarkan atau dihapus lewat tinker setelah persetujuan.
 
 ### Keputusan desain final
 
-- Frontend: Blade + Bootstrap 5 (terpasang). Font memakai font sistem.
-- Login memakai username (bukan email). Kolom username ditambah lewat migration di Phase 4. NIM dan nomor HP tidak dipakai.
-- Administrator tidak absen. 18 anggota absen. Total 19 akun (1 admin, 18 anggota). Akun anggota hanya dibuat admin. Anggota boleh mengganti password sendiri.
+- Frontend: Blade + Bootstrap 5 (terpasang). Font sistem.
+- Login memakai username, bukan email. NIM dan nomor HP tidak dipakai.
+- Administrator tidak absen. 18 anggota absen. Total 19 akun. Akun anggota hanya dibuat admin. Anggota boleh mengganti password sendiri.
+- role bernilai admin atau anggota. schedule_category bernilai stay, shift_malam, atau weekend (kosong untuk admin).
+- Role dan status akun baru ditetapkan di kode (anggota, aktif), bukan dari input form.
+- Pesan gagal login dibuat satu jenis agar username tidak bisa ditebak.
+- Reset password menghapus semua sesi anggota di tabel sessions.
 - QR: satu sesi per tanggal, satu QR dipindai semua anggota, token disimpan sebagai hash.
 - Absensi dikirim sekaligus (GPS, QR, selfie) dalam satu transaction.
 - Status Menunggu tidak disimpan (dihitung). Hanya hadir dan tidak_hadir yang disimpan. Tidak Hadir dibuat oleh Scheduler harian.
 - Tabel attendances punya unique (user_id, attendance_date) dan kolom category_snapshot.
-- Tabel rencana: users (tambahan kolom), settings, attendance_sessions, attendances, activity_logs.
-- Geofence dijalankan service (Haversine) saat login dan kirim absensi, bukan middleware di semua halaman.
-- Route: prefix /admin dan /anggota. Middleware: auth, aktif, role, policy Absensi, rate limit login dan absensi.
+- Geofence dijalankan service (Haversine) saat login anggota dan kirim absensi, bukan middleware di semua halaman.
+- Route: prefix /admin dan /anggota. Middleware: auth, aktif, role, policy absensi, rate limit login dan absensi.
 - Foto selfie disajikan lewat controller dengan pemeriksaan hak akses, bukan lewat URL storage.
+- Form ubah profil anggota nanti tidak boleh memakai $request->all() karena role ada di daftar Fillable. Pakai hanya field yang divalidasi.
 
-### Catatan teknis
+### Catatan keamanan dan teknis
 
-- Build Bootstrap menampilkan banyak Deprecation Warning dari Sass (@import dan fungsi global). Itu peringatan dari Bootstrap 5.3.8, bukan error, dan belum dibersihkan.
-- @laravel/multiplex (optional dependency) berstatus UNMET OPTIONAL. Tidak diperiksa lebih lanjut.
-- Terminal Windows sering menempel banyak perintah dalam satu baris sehingga findstr salah membaca. Jalankan perintah satu per satu.
+- .env berisi password admin dan tidak masuk Git. Jangan menampilkan atau meminta isi .env. Jangan menempel password ke chat.
+- Login anggota BELUM memeriksa radius 30 meter. Jangan membuat 18 akun anggota sungguhan sebelum Phase 5 selesai.
+- Build Bootstrap menampilkan banyak Deprecation Warning Sass. Itu peringatan dari Bootstrap 5.3.8, bukan error.
+- @laravel/multiplex berstatus UNMET OPTIONAL. Tidak diperiksa lebih lanjut.
+- Terminal Windows sering menempel banyak perintah di satu baris. Jalankan perintah satu per satu.
+- Peringatan CRLF dan LF saat git add tidak berbahaya.
+
+### Keputusan terbuka
+
+- Koordinat posko (diberikan pemilik proyek di Phase 5, jangan dikarang).
+- Batas akurasi GPS max_gps_accuracy_m (Phase 5).
+- Durasi kedaluwarsa QR (Phase 7, beri rekomendasi dan minta persetujuan).
 
 ### Langkah selanjutnya (satu langkah kecil per giliran)
 
-1. Phase 3 langkah 5: alias middleware di bootstrap/app.php (role dan aktif), kerangka saja.
-2. Buka http://kkn-management-system.test di browser untuk memastikan layout tampil (opsional, bukti pertama aplikasi berjalan).
-3. Commit dan push perubahan Phase 3 setelah persetujuan eksplisit pemilik proyek.
-4. Phase 4: migration kolom users (username, role, schedule_category, is_active), login, logout.
+1. Pastikan ketiga hal di bagian "Hal yang belum dipastikan" sudah diterapkan.
+2. Phase 4 sisa: halaman ganti password sendiri (dengan password lama) dan halaman riwayat aktivitas admin (membaca activity_logs).
+3. Commit dan push dengan persetujuan eksplisit pemilik proyek.
+4. Phase 5 Geofencing: minta koordinat posko, buat tabel settings, service Haversine, validasi saat login anggota.
 
 ### Cara kerja yang diminta pemilik proyek
 
-- Hemat sesi: jangan minta pengecekan berlebihan atau tempel ulang file. Jangan sertakan langkah pengujian per langkah.
-- Jika hasil perintah tidak ditempel, katakan belum terbukti.
-- Untuk commit dan push: jelaskan dampak, lalu beri satu perintah dengan pengaman. Menjalankan perintah itu dihitung sebagai persetujuan eksplisit hanya jika pesan menyatakannya dengan jelas.
-- Langkah pertama sesi baru: baca checkpoint ini, jalankan git status dan git log --oneline -3, lanjut sesuai Langkah selanjutnya.
+- Pemilik proyek menjawab cepat dan singkat. Beri daftar keputusan yang ringkas.
+- Hemat sesi: jangan minta pengecekan berlebihan atau tempel ulang file. Jangan sertakan langkah pengujian.
+- Bila saat menempel ada hasil yang tidak muncul, katakan belum terbukti.
+- Untuk commit dan push: jelaskan dampak, lalu beri satu perintah dengan pengaman (periksa .env, node_modules, file .sqlite tidak ikut staging). Persetujuan eksplisit hanya jika pesan menyatakannya dengan jelas, misalnya "commit Phase 4".
+- Untuk migration: tunggu kata "setuju migration" sebelum memberi perintah php artisan migrate.
+- Saat Claude tidak bisa mengakses folder lokal, berikan isi file lengkap. Jangan mengaku sudah mengubah file.
+- Langkah pertama sesi baru: baca checkpoint ini, jalankan git status dan git log --oneline -3, lalu lanjut sesuai Langkah selanjutnya. Tidak perlu audit panjang.

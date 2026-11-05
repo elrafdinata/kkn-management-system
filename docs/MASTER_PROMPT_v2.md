@@ -1,6 +1,6 @@
 # MASTER PROMPT --- KKN MANAGEMENT SYSTEM
 
-> **PENIMPA (2026-11-06):** Bagian 3, 8, 9, dan 10 di bawah sudah usang. Phase 0 sampai 2 selesai dan disetujui. Dokumentasi digabung dalam `docs/PROJECT_DOCS.md`, jangan membuat tujuh file terpisah. Posisi terakhir ada di bagian "CHECKPOINT AKHIR SESI" di akhir `docs/PROJECT_DOCS.md`: baca bagian itu dulu, lalu jalankan `git status` dan `git log --oneline -3`. Jangan tulis langkah pengujian per langkah kecuali diminta pemilik proyek.
+> **PENIMPA (2026-11-06, akhir sesi 2):** Bagian 3, 8, 9, dan 10 di bawah sudah usang. Phase 0 sampai 3 selesai, Phase 4 sebagian besar selesai. Dokumentasi digabung dalam `docs/PROJECT_DOCS.md`, jangan membuat tujuh file terpisah. Posisi terakhir ada di bagian "CHECKPOINT AKHIR SESI" di akhir `docs/PROJECT_DOCS.md`: baca bagian itu dulu, lalu jalankan `git status` dan `git log --oneline -3`. Jangan menyertakan langkah pengujian per langkah. Jangan memperbarui kedua file dokumen kecuali pemilik proyek berkata sesi hampir habis. Jangan membuat akun anggota sungguhan sebelum geofencing (Phase 5) selesai.
 
 ## Instruksi Utama untuk Memulai Chat Baru Claude AI
 
