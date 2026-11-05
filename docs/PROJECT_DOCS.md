@@ -1,0 +1,733 @@
+# PROJECT MASTER DOCUMENT
+
+## KKN MANAGEMENT SYSTEM
+
+Terakhir diperbarui: 2026-11-06
+
+## 1. Identitas Proyek
+
+- Nama aplikasi: KKN MANAGEMENT SYSTEM
+- Modul pertama: Sistem Absensi Digital KKN Kelompok 30 UNTARA
+- Developer dan administrator utama: Muhamad Rahel Alvizahri
+- Lokasi kegiatan: Kelurahan Kadu Agung, Kecamatan Tigaraksa, Kabupaten Tangerang, Provinsi Banten
+- Jumlah anggota: 18 orang
+
+## 2. Tujuan
+
+Membangun sistem informasi berbasis web untuk membantu pengelolaan kegiatan KKN secara terpusat, terstruktur, transparan, dan mudah digunakan. Dapat diakses melalui laptop, Android, dan iOS (browser), dengan desain responsif yang mengutamakan smartphone.
+
+## 3. Ruang Lingkup
+
+- Tahap pertama: Modul 1 Sistem Absensi Digital.
+- Modul lain (administrasi, data anggota, monitoring program kerja, dokumentasi, dashboard, chatbot) direncanakan setelah modul absensi stabil.
+- KARAKSA WASTE adalah aplikasi terpisah dan tidak dicampur ke modul absensi.
+
+## 4. Teknologi (versi diperiksa lewat perintah terminal pada 2026-11-06)
+
+| Komponen          | Versi                                    |
+| ----------------- | ---------------------------------------- |
+| Sistem operasi    | Windows                                  |
+| Local development | Laragon                                  |
+| Editor            | Visual Studio Code                       |
+| Laravel           | 13.40.0                                  |
+| PHP               | 8.5.8                                    |
+| Composer          | 2.10.3                                   |
+| Node.js           | 22.23.1                                  |
+| NPM               | 10.9.8                                   |
+| Database          | MySQL 8.0.30                             |
+| Frontend          | Belum ditentukan (diputuskan di Phase 2) |
+
+- Folder proyek: C:\laragon\www\kkn-management-system
+- Database: kkn_management_system
+- Repository: https://github.com/elrafdinata/kkn-management-system
+- Branch: main
+- Commit terakhir saat audit: d5833e4 (Initial project setup)
+
+## 5. Aturan Bisnis (ditetapkan pemilik proyek)
+
+**Role**
+
+- Administrator: login dari mana saja, tanpa batas geofence, akses penuh.
+- Anggota: login hanya dalam radius posko, hanya melihat data sendiri.
+- Pembatasan akses diterapkan di backend.
+
+**Geofencing**
+
+- Radius 30 meter dari titik posko, dihitung dengan Haversine di backend.
+- Divalidasi saat login, absensi, dan pemrosesan QR.
+- Koordinat posko disimpan di pengaturan database, bukan di kode.
+- Koordinat posko: BELUM DIBERIKAN.
+
+**Kategori jadwal**
+
+- Stay: wajib absensi Senin-Minggu.
+- Shift Malam: wajib absensi Senin-Minggu.
+- Weekend: wajib absensi Sabtu-Minggu.
+- Hari tidak wajib tidak dihitung Tidak Hadir.
+
+**Waktu**
+
+- Zona waktu Asia/Jakarta, absensi 00.00-23.59 WIB.
+- Satu absensi berhasil per anggota per hari.
+- Tidak ada status Terlambat dan tidak ada absensi pagi/sore.
+
+**Status absensi**: Hadir, Menunggu, Tidak Hadir (Tidak Hadir ditetapkan otomatis oleh Scheduler setelah hari berakhir).
+
+**QR Code**: token acak, ada masa berlaku, diverifikasi server, tidak bisa dipakai ulang. Durasi kedaluwarsa: BELUM DITENTUKAN.
+
+**Selfie**: wajib dari kamera langsung, disimpan di storage privat, anggota hanya melihat foto sendiri. Tidak ada face recognition.
+
+## 6. Keputusan yang Belum Ditentukan
+
+- Koordinat posko (dibutuhkan di Phase 5).
+- Durasi kedaluwarsa QR Code (dibutuhkan di Phase 7).
+- Pilihan frontend (dibutuhkan di Phase 2).
+
+## 7. Catatan Keamanan
+
+Repository bersifat public. Dilarang mengunggah password, token, isi .env, koordinat posko sensitif, atau data pribadi anggota.
+
+## 8. Status Dokumen
+
+- Dokumen ini dibuat pada Phase 0.
+- Status Git per 2026-11-06: folder docs/ belum di-commit (Untracked).
+- Tinjauan dokumentasi: 7 dari 7 dokumen sudah ditinjau, koreksi sedang diterapkan.
+- Belum ada fitur absensi yang dibuat atau diuji.
+
+# DEVELOPMENT ROADMAP
+
+## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
+
+Terakhir diperbarui: 2026-11-06
+
+Tingkat status: Direncanakan, Dibuat, Dijalankan, Diuji, Berhasil, Siap digunakan.
+
+Aturan: kerjakan berurutan, jangan melewati tahap tanpa persetujuan dan pengujian.
+
+| Phase | Nama                             | Status                     | Catatan                                                                       |
+| ----- | -------------------------------- | -------------------------- | ----------------------------------------------------------------------------- |
+| 0     | Project Discovery                | Dijalankan (belum lengkap) | Audit berhasil. 7 dokumen dibuat, koreksi sedang diterapkan, belum di-commit. |
+| 1     | System Analysis                  | Direncanakan               | SRS, kebutuhan fungsional dan non-fungsional, aktor, hak akses, diagram       |
+| 2     | System Design                    | Direncanakan               | Arsitektur, ERD, schema, route, UI/UX, desain alur, pilihan frontend          |
+| 3     | Project Foundation               | Direncanakan               | Konfigurasi, timezone, layout, fondasi autentikasi dan role                   |
+| 4     | Authentication & User Management | Direncanakan               | Login, logout, kelola anggota, kategori jadwal                                |
+| 5     | Geofencing                       | Direncanakan               | Perlu koordinat posko dari pemilik proyek                                     |
+| 6     | Schedule Management              | Direncanakan               | Stay, Shift Malam, Weekend                                                    |
+| 7     | QR Attendance                    | Direncanakan               | Perlu keputusan durasi kedaluwarsa QR                                         |
+| 8     | Selfie Attendance                | Direncanakan               | Kamera, preview, penyimpanan privat                                           |
+| 9     | Attendance Status & Automation   | Direncanakan               | Hadir/Menunggu/Tidak Hadir, Scheduler, Cron                                   |
+| 10    | Admin Dashboard                  | Direncanakan               | Statistik, anggota, riwayat, filter, pengaturan                               |
+| 11    | Member Dashboard                 | Direncanakan               | Status, absensi, jadwal, riwayat, statistik pribadi                           |
+| 12    | Reporting                        | Direncanakan               | Rekap dan ekspor Excel dan PDF                                                |
+| 13    | Security & Testing               | Direncanakan               | Pengujian fungsional, keamanan, akses, responsivitas                          |
+| 14    | Deployment                       | Direncanakan               | Hosting, HTTPS, storage, scheduler, backup, uji 18 akun                       |
+| 15    | Release & Documentation          | Direncanakan               | Panduan admin dan anggota, dokumentasi, evaluasi akhir                        |
+
+## Rincian Phase 0
+
+- [x] Proyek Laravel dibuat (terverifikasi audit)
+- [x] Koneksi database dan migration bawaan (terverifikasi audit)
+- [x] Git dan push awal, commit d5833e4 (terverifikasi audit)
+- [x] Audit versi teknologi dan kondisi repository
+- [x] Versi MySQL 8.0.30 terverifikasi (2026-11-06)
+- [x] PROJECT_MASTER_DOCUMENT.md (dibuat, belum di-commit)
+- [x] DEVELOPMENT_ROADMAP.md (dibuat, belum di-commit)
+- [x] PROJECT_PROGRESS.md (dibuat, belum di-commit)
+- [x] DATABASE_DOCUMENTATION.md (dibuat, belum di-commit)
+- [x] SYSTEM_ARCHITECTURE.md (dibuat, belum di-commit)
+- [x] CHANGELOG.md (dibuat, belum di-commit)
+- [x] NEXT_SESSION_PROMPT.md (dibuat, belum di-commit)
+- [x] Tinjauan 7 dokumen selesai (2026-11-06)
+- [ ] Koreksi dokumen diterapkan (sedang berjalan)
+- [ ] Persetujuan pemilik proyek untuk commit dokumentasi
+
+Kriteria Phase 0 selesai: semua koreksi diterapkan, pemilik proyek menyetujui, commit dan push berhasil, dan git status bersih.
+
+Status Git per 2026-11-06: folder docs/ belum di-commit (Untracked).
+
+## Keputusan yang masih terbuka
+
+- Koordinat posko (dibutuhkan di Phase 5)
+- Durasi kedaluwarsa QR Code (dibutuhkan di Phase 7)
+- Pilihan frontend (dibutuhkan di Phase 2)
+
+# DATABASE DOCUMENTATION
+
+## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
+
+Terakhir diperbarui: 2026-11-06
+Status Git dokumen ini: Untracked (belum di-commit).
+
+## Status Verifikasi
+
+- Terverifikasi lewat `php artisan db:table`: tabel `sessions` (InnoDB, utf8mb4_unicode_ci).
+- Terverifikasi lewat `php artisan migrate:status` pada 2026-11-06: 3 migration bawaan berstatus Ran.
+- Tabel lain: struktur dicatat dari hasil query `information_schema` sebelumnya dan belum diperiksa ulang satu per satu.
+- Foreign key: belum diverifikasi.
+
+## Informasi Umum
+
+- Database: kkn_management_system
+- DBMS: MySQL 8.0.30
+- Server MySQL lokal dipakai bersama proyek lain. Jangan mengubah database selain kkn_management_system.
+- Perintah destruktif (migrate:fresh, db:wipe, hapus tabel) dilarang tanpa persetujuan pemilik proyek.
+
+## Migration yang Sudah Dijalankan (Batch 1)
+
+| Migration                            | Status |
+| ------------------------------------ | ------ |
+| 0001_01_01_000000_create_users_table | Ran    |
+| 0001_01_01_000001_create_cache_table | Ran    |
+| 0001_01_01_000002_create_jobs_table  | Ran    |
+
+## Daftar Tabel (9 tabel bawaan Laravel)
+
+Database kkn_management_system berisi 9 tabel. Angka 76 pada `db:show` adalah jumlah seluruh tabel di server MySQL lokal, bukan tabel proyek ini.
+
+Belum ada tabel buatan sendiri untuk modul absensi.
+
+### users
+
+| Kolom             | Tipe            | Null | Key     |
+| ----------------- | --------------- | ---- | ------- |
+| id                | bigint unsigned | NO   | PRIMARY |
+| name              | varchar(255)    | NO   |         |
+| email             | varchar(255)    | NO   | UNIQUE  |
+| email_verified_at | timestamp       | YES  |         |
+| password          | varchar(255)    | NO   |         |
+| remember_token    | varchar(100)    | YES  |         |
+| created_at        | timestamp       | YES  |         |
+| updated_at        | timestamp       | YES  |         |
+
+Catatan: struktur masih bawaan Laravel. Belum ada kolom role, kategori jadwal, atau status aktif.
+
+### password_reset_tokens
+
+| Kolom      | Tipe         | Null | Key     |
+| ---------- | ------------ | ---- | ------- |
+| email      | varchar(255) | NO   | PRIMARY |
+| token      | varchar(255) | NO   |         |
+| created_at | timestamp    | YES  |         |
+
+### sessions
+
+Terverifikasi lewat `db:table`: engine InnoDB, collation utf8mb4_unicode_ci.
+
+| Kolom         | Tipe            | Null | Key     |
+| ------------- | --------------- | ---- | ------- |
+| id            | varchar(255)    | NO   | PRIMARY |
+| user_id       | bigint unsigned | YES  | INDEX   |
+| ip_address    | varchar(45)     | YES  |         |
+| user_agent    | text            | YES  |         |
+| payload       | longtext        | NO   |         |
+| last_activity | int             | NO   | INDEX   |
+
+### cache
+
+| Kolom      | Tipe         | Null | Key     |
+| ---------- | ------------ | ---- | ------- |
+| key        | varchar(255) | NO   | PRIMARY |
+| value      | mediumtext   | NO   |         |
+| expiration | bigint       | NO   | INDEX   |
+
+### cache_locks
+
+| Kolom      | Tipe         | Null | Key     |
+| ---------- | ------------ | ---- | ------- |
+| key        | varchar(255) | NO   | PRIMARY |
+| owner      | varchar(255) | NO   |         |
+| expiration | bigint       | NO   | INDEX   |
+
+### jobs
+
+| Kolom        | Tipe              | Null | Key     |
+| ------------ | ----------------- | ---- | ------- |
+| id           | bigint unsigned   | NO   | PRIMARY |
+| queue        | varchar(255)      | NO   | INDEX   |
+| payload      | longtext          | NO   |         |
+| attempts     | smallint unsigned | NO   |         |
+| reserved_at  | int unsigned      | YES  |         |
+| available_at | int unsigned      | NO   |         |
+| created_at   | int unsigned      | NO   |         |
+
+### job_batches
+
+| Kolom          | Tipe         | Null | Key     |
+| -------------- | ------------ | ---- | ------- |
+| id             | varchar(255) | NO   | PRIMARY |
+| name           | varchar(255) | NO   |         |
+| total_jobs     | int          | NO   |         |
+| pending_jobs   | int          | NO   |         |
+| failed_jobs    | int          | NO   |         |
+| failed_job_ids | longtext     | NO   |         |
+| options        | mediumtext   | YES  |         |
+| cancelled_at   | int          | YES  |         |
+| created_at     | int          | NO   |         |
+| finished_at    | int          | YES  |         |
+
+### failed_jobs
+
+| Kolom      | Tipe            | Null | Key                                       |
+| ---------- | --------------- | ---- | ----------------------------------------- |
+| id         | bigint unsigned | NO   | PRIMARY                                   |
+| uuid       | varchar(255)    | NO   | UNIQUE                                    |
+| connection | varchar(255)    | NO   | INDEX gabungan                            |
+| queue      | varchar(255)    | NO   | INDEX gabungan                            |
+| payload    | longtext        | NO   |                                           |
+| exception  | longtext        | NO   |                                           |
+| failed_at  | timestamp       | NO   | INDEX gabungan, default CURRENT_TIMESTAMP |
+
+### migrations
+
+| Kolom     | Tipe         | Null | Key     |
+| --------- | ------------ | ---- | ------- |
+| id        | int unsigned | NO   | PRIMARY |
+| migration | varchar(255) | NO   |         |
+| batch     | int          | NO   |         |
+
+## Index dan Unique Constraint
+
+Dicatat dari hasil query `information_schema` sebelumnya. Belum diperiksa ulang satu per satu.
+
+| Tabel         | Index                                        | Jenis       | Kolom                        |
+| ------------- | -------------------------------------------- | ----------- | ---------------------------- |
+| cache         | cache_expiration_index                       | Index       | expiration                   |
+| cache_locks   | cache_locks_expiration_index                 | Index       | expiration                   |
+| failed_jobs   | failed_jobs_uuid_unique                      | Unique      | uuid                         |
+| failed_jobs   | failed_jobs_connection_queue_failed_at_index | Index       | connection, queue, failed_at |
+| jobs          | jobs_queue_index                             | Index       | queue                        |
+| sessions      | sessions_last_activity_index                 | Index       | last_activity                |
+| sessions      | sessions_user_id_index                       | Index       | user_id                      |
+| users         | users_email_unique                           | Unique      | email                        |
+| (semua tabel) | PRIMARY                                      | Primary key | lihat tabel masing-masing    |
+
+## Relasi / Foreign Key
+
+Belum diverifikasi. Query yang dijalankan hanya membaca indeks, bukan foreign key. Akan diperiksa pada tahap berikutnya jika diperlukan.
+
+## Rencana Perubahan Database (Direncanakan, belum dibuat)
+
+Tabel untuk modul absensi akan dirancang pada Phase 2 (System Design), termasuk unique constraint satu anggota satu tanggal, sesuai aturan bisnis. Belum ada perubahan database buatan sendiri.
+
+## Riwayat Perubahan Database
+
+| Tanggal       | Perubahan                             | Status                                |
+| ------------- | ------------------------------------- | ------------------------------------- |
+| (awal proyek) | 3 migration bawaan Laravel dijalankan | Berhasil, status Ran dicek 2026-11-06 |
+
+# SYSTEM ARCHITECTURE
+
+## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
+
+Terakhir diperbarui: 2026-11-06
+Status Git dokumen ini: Untracked (belum di-commit).
+
+## Status Verifikasi
+
+- Terverifikasi pada 2026-11-06: isi `composer.json` (dibaca langsung) dan versi Laravel 13.40.0 (`php artisan --version`).
+- Struktur folder dan route dicatat dari pemeriksaan sebelumnya dan belum diperiksa ulang pada sesi ini.
+- Isi `package.json` belum dibaca ulang.
+
+## 1. Gambaran Umum
+
+- Pendekatan: Laravel MVC, satu aplikasi untuk Administrator dan Anggota.
+- Prinsip: modular, sederhana untuk tahap awal, dapat ditambah modul baru tanpa membangun ulang.
+- Status: baru struktur bawaan Laravel. Belum ada kode buatan sendiri.
+
+## 2. Teknologi
+
+Terverifikasi dari `composer.json`:
+
+- PHP minimal ^8.3 (terpasang 8.5.8)
+- laravel/framework ^13.17 (terpasang 13.40.0)
+- laravel/tinker ^3.0
+- Dev: fakerphp/faker ^1.23, laravel/pail ^1.2.5, laravel/pao ^1.0.6, laravel/pint ^1.27, mockery/mockery ^1.6, nunomaduro/collision ^8.6, phpunit/phpunit ^12.5.12
+- Package Composer tambahan: belum ada. Package QR dan ekspor Excel/PDF belum dipasang.
+
+Frontend:
+
+- Pilihan frontend: belum ditentukan (diputuskan di Phase 2).
+- Build tool: file `vite.config.js` dan `package.json` ada di proyek. Isinya belum diperiksa ulang.
+
+## 3. Struktur Folder (dicatat dari pemeriksaan sebelumnya)
+
+```
+kkn-management-system/
+  app/
+    Http/Controllers/Controller.php
+    Models/User.php
+    Providers/AppServiceProvider.php
+  bootstrap/        (app.php, providers.php, cache/)
+  config/           (app, auth, cache, database, filesystems, logging, mail, queue, services, session)
+  database/
+    factories/UserFactory.php
+    migrations/     (3 migration bawaan)
+    seeders/DatabaseSeeder.php
+  docs/             (dokumentasi proyek)
+  public/
+  resources/
+    css/app.css
+    js/app.js
+    views/welcome.blade.php
+  routes/           (web.php, console.php)
+  storage/
+  tests/
+  vendor/
+  .env              (rahasia, tidak masuk Git)
+  .env.example
+  composer.json, package.json, vite.config.js, phpunit.xml
+  AGENTS.md, CLAUDE.md, README.md
+```
+
+## 4. Komponen Aktual
+
+| Komponen     | Kondisi                                      |
+| ------------ | -------------------------------------------- |
+| Controller   | Hanya Controller dasar bawaan                |
+| Model        | Hanya User (bawaan)                          |
+| Middleware   | Belum ada buatan sendiri                     |
+| Service      | Belum ada (folder app/Services belum dibuat) |
+| Form Request | Belum ada                                    |
+| View         | Hanya welcome.blade.php                      |
+| Seeder       | Hanya DatabaseSeeder bawaan                  |
+
+## 5. Route Aktual (dicatat dari pemeriksaan sebelumnya)
+
+| Method  | URI            | Keterangan                                |
+| ------- | -------------- | ----------------------------------------- |
+| GET     | /              | Menampilkan view welcome (routes/web.php) |
+| GET/PUT | storage/{path} | Bawaan Laravel                            |
+| GET     | up             | Health check bawaan Laravel               |
+
+Belum ada route login, dashboard, absensi, atau admin.
+Detail method route akan diverifikasi ulang dengan `php artisan route:list`.
+
+## 6. Alur Proses
+
+Belum ada alur proses buatan sendiri. Alur autentikasi, geofencing, QR, dan selfie akan dirancang di Phase 2.
+
+## 7. Rencana Arsitektur (Direncanakan, belum dibuat)
+
+Prinsip yang akan dipakai, dirinci di Phase 2:
+
+- Controller tipis, logika bisnis dipisah ke Service bila diperlukan.
+- Form Request untuk validasi.
+- Middleware role untuk membatasi akses Administrator dan Anggota di backend.
+- Database transaction untuk proses absensi.
+- Pengaturan posko dan radius disimpan di database, bukan di kode.
+- Foto selfie di storage privat, diakses lewat route yang memeriksa hak akses.
+- Laravel Scheduler untuk penutupan hari (status Tidak Hadir).
+- Struktur dibuat agar modul berikutnya dapat ditambahkan.
+
+## 8. Catatan
+
+- .env berisi credential dan tidak boleh masuk repository.
+- KARAKSA WASTE adalah aplikasi terpisah dan tidak termasuk arsitektur ini.
+
+# PROJECT PROGRESS
+
+## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
+
+Terakhir diperbarui: 2026-11-06
+
+## Posisi Saat Ini
+
+- Phase aktif: Phase 0 - Project Discovery (belum lengkap)
+- Branch: main
+- Commit terakhir: d5833e4 (Initial project setup)
+- Status Git: folder docs/ belum di-commit (Untracked)
+- Dokumentasi digabung menjadi satu file: docs/PROJECT_DOCS.md (keputusan pemilik proyek)
+
+## Pekerjaan Selesai
+
+- Proyek Laravel 13.40.0 dibuat dan terpasang di `C:\laragon\www\kkn-management-system`.
+- MySQL 8.0.30 terverifikasi.
+- Koneksi database kkn_management_system berhasil.
+- 3 migration bawaan Laravel dijalankan (status Ran, dicek ulang 2026-11-06).
+- Git diinisialisasi, commit awal dibuat, push ke GitHub berhasil.
+- Audit kondisi proyek 2026-11-06 selesai.
+- Dokumentasi dibuat di folder docs/ (belum di-commit).
+- Ketujuh dokumen digabung menjadi docs/PROJECT_DOCS.md. File lama dihapus. Folder docs/ berisi 2 file: PROJECT_DOCS.md dan MASTER_PROMPT_v2.md.
+
+## Pekerjaan Sedang Dikerjakan
+
+- Tinjauan dan persetujuan dokumentasi oleh pemilik proyek.
+
+## Pekerjaan Belum Dikerjakan
+
+- Commit dan push dokumentasi (menunggu persetujuan pemilik proyek).
+- Phase 1 sampai Phase 15.
+- Belum ada fitur absensi, login buatan sendiri, role, dashboard, geofencing, QR, selfie, jadwal, status otomatis, atau laporan.
+
+## Error
+
+- Tidak ada error yang tercatat.
+
+## Hasil Pengujian
+
+Audit 2026-11-06 (perintah dijalankan di terminal):
+
+- Laravel 13.40.0 (`php artisan --version`): sesuai.
+- Git: branch main, commit d5833e4, sinkron dengan origin/main. Hanya docs/ yang Untracked.
+- Migration: 3 migration bawaan berstatus Ran.
+- Database: 9 tabel bawaan Laravel (angka 76 pada db:show adalah seluruh server MySQL lokal).
+- Route: 4 route bawaan (dicatat dari pemeriksaan sebelumnya).
+- Aplikasi belum dibuka di browser, sehingga belum terbukti berjalan.
+
+## Kriteria Phase 0 Selesai
+
+- Semua koreksi prioritas A dan B diterapkan.
+- Pemilik proyek menyetujui dokumentasi.
+- Commit dan push dokumentasi berhasil.
+- `git status` bersih.
+
+## Pending
+
+- Persetujuan pemilik proyek sebelum commit dan push dokumentasi.
+- MASTER_PROMPT_v2.md ikut di-commit ke repository PUBLIC (keputusan pemilik proyek). Isinya harus bebas secret dan nama database proyek lain sebelum commit.
+- Koreksi prioritas C (kelengkapan dokumen), ditunda.
+- Pilihan frontend (diputuskan di Phase 2).
+- Koordinat posko (dibutuhkan Phase 5).
+- Keputusan durasi kedaluwarsa QR (dibutuhkan Phase 7).
+- Pemeriksaan foreign key database.
+- Pemeriksaan opsional: buka aplikasi di browser untuk membuktikan aplikasi berjalan.
+- Repository public: pastikan tidak ada secret atau data pribadi yang ikut terunggah.
+
+## Langkah Selanjutnya
+
+1. Verifikasi PROJECT_DOCS.md.
+2. Pastikan MASTER_PROMPT_v2.md bebas secret dan nama database proyek lain.
+3. Jelaskan dampak commit dan push, lalu minta persetujuan pemilik proyek.
+4. Commit dan push, pastikan `git status` bersih.
+5. Perbarui status Git di dokumen, nyatakan Phase 0 selesai, lalu mulai Phase 1 - System Analysis.
+
+# CHANGELOG
+
+## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
+
+Format: entri terbaru di atas. Setiap entri mencatat fitur, kode, bug, database, package, dan pengujian.
+
+## [Belum dirilis] - 2026-11-06
+
+### Dokumentasi (Dibuat, belum di-commit)
+
+- Folder docs/ dibuat. Status Git: Untracked.
+- Dokumen dikoreksi dan digabung menjadi satu file: PROJECT_DOCS.md.
+- Cakupan koreksi: prioritas A dan B. Prioritas C ditunda.
+
+### Pengujian
+
+- Audit proyek 2026-11-06: versi Laravel, status Git, dan migration diperiksa ulang. Hasil sesuai checkpoint. Berhasil.
+
+### Kode
+
+- Tidak ada perubahan kode.
+
+### Database
+
+- Tidak ada perubahan database.
+
+### Package
+
+- Tidak ada package baru.
+
+### Perbaikan bug
+
+- Tidak ada.
+
+## [Phase 0 awal] - Initial project setup (commit d5833e4)
+
+- Proyek Laravel 13.40.0 dibuat.
+- Koneksi ke database kkn_management_system berhasil.
+- 3 migration bawaan Laravel dijalankan (users, cache, jobs).
+- Git diinisialisasi dan dipush ke https://github.com/elrafdinata/kkn-management-system (branch main).
+- Catatan: tanggal pengerjaan tidak dicatat karena tidak terverifikasi.
+
+# NEXT SESSION PROMPT
+
+## KKN MANAGEMENT SYSTEM - Sistem Absensi Digital KKN Kelompok 30 UNTARA
+
+Terakhir diperbarui: 2026-11-06
+Status: Dibuat (belum di-commit).
+
+## 0. Instruksi untuk AI Sesi Berikutnya
+
+Anda melanjutkan proyek yang sudah ada. JANGAN membuat proyek Laravel baru. JANGAN langsung membuat fitur. Repository dan kode aktual adalah sumber kebenaran utama. Dokumen ini bisa tertinggal dari kondisi sebenarnya.
+
+Wajib dilakukan berurutan:
+
+1. Baca docs/PROJECT_DOCS.md (semua bagian, termasuk file ini).
+2. Minta pemilik proyek menjalankan pemeriksaan Git dan versi (bagian 14).
+3. Periksa database dan file yang berkaitan.
+4. Bandingkan dokumentasi dengan kondisi aktual. Jika berbeda, gunakan kondisi aktual dan perbarui dokumentasi.
+5. Konfirmasi posisi pengembangan kepada pemilik proyek.
+6. Lanjutkan dari pekerjaan terakhir yang belum selesai. Jangan mengulang pekerjaan yang sudah selesai dan diuji.
+
+Jangan mengaku sudah memperbarui file jika hanya menuliskan isinya di percakapan.
+
+## 1. Identitas Proyek
+
+- Nama: KKN MANAGEMENT SYSTEM
+- Modul pertama: Sistem Absensi Digital KKN Kelompok 30 UNTARA
+- Developer dan administrator utama: Muhamad Rahel Alvizahri (masih belajar Laravel)
+- Lokasi KKN: Kelurahan Kadu Agung, Kecamatan Tigaraksa, Kabupaten Tangerang, Banten
+- Jumlah anggota: 18 orang
+
+## 2. Tujuan Sistem
+
+Aplikasi web terpusat untuk pengelolaan KKN, dapat diakses dari laptop, Android, dan iOS (browser), responsif dan mengutamakan smartphone. Dikembangkan modular. Tahap pertama hanya modul absensi. KARAKSA WASTE adalah aplikasi terpisah dan tidak dicampur.
+
+## 3. Aturan Pendampingan
+
+- Bahasa Indonesia sederhana, bertahap, satu tahapan kecil per jawaban.
+- Tunggu hasil pengujian dan konfirmasi pemilik proyek sebelum lanjut.
+- Berikan lokasi file lengkap, perintah terminal siap salin, kode lengkap, cara uji, hasil yang diharapkan.
+- Jangan berasumsi, jangan menebak isi file, baca file sebelum mengubah, jangan menimpa file tanpa membaca.
+- Jika error: hentikan, minta pesan error lengkap, beri satu solusi paling sesuai.
+- Jika pemilik hanya menempel perintah tanpa hasil, katakan belum terbukti dan minta ulang.
+
+## 4. Teknologi dan Versi (terverifikasi 2026-11-06)
+
+| Komponen          | Versi                                    |
+| ----------------- | ---------------------------------------- |
+| Sistem operasi    | Windows                                  |
+| Local development | Laragon                                  |
+| Editor            | Visual Studio Code                       |
+| Laravel           | 13.40.0                                  |
+| PHP               | 8.5.8                                    |
+| Composer          | 2.10.3                                   |
+| Node.js           | 22.23.1                                  |
+| NPM               | 10.9.8                                   |
+| MySQL             | 8.0.30                                   |
+| Frontend          | Belum ditentukan (diputuskan di Phase 2) |
+
+Jangan mengubah versi teknologi hanya karena ada versi lebih baru. Periksa kompatibilitas sebelum memasang package.
+
+## 5. Lokasi, Database, Repository
+
+- Folder: C:\laragon\www\kkn-management-system
+- Database: kkn_management_system
+- Repository: https://github.com/elrafdinata/kkn-management-system (PUBLIC)
+- Branch: main
+- Commit terakhir: d5833e4 (Initial project setup)
+- Folder docs/ BELUM di-commit (Untracked) saat dokumen ini dibuat.
+
+## 6. Aturan Penting Database dan Git
+
+- Server MySQL lokal dipakai bersama proyek lain. Jangan menyentuh database atau folder proyek lain.
+- Dilarang tanpa persetujuan pemilik proyek: migrate:fresh, db:wipe, hapus tabel, hapus migration, commit, push, ganti branch, reset, force push, hapus file penting.
+- Repository public: jangan unggah credential, token, password, isi .env, koordinat posko sensitif, atau data pribadi anggota. Jangan menampilkan isi .env.
+
+## 7. Phase Terakhir dan Progres
+
+Phase aktif: Phase 0 - Project Discovery (belum lengkap).
+
+- Phase 0 Project Discovery: Dijalankan. Audit dan dokumentasi dibuat, menunggu persetujuan dan commit.
+- Phase 1 System Analysis: Direncanakan
+- Phase 2 System Design: Direncanakan
+- Phase 3 Project Foundation: Direncanakan
+- Phase 4 Authentication & User Management: Direncanakan
+- Phase 5 Geofencing: Direncanakan
+- Phase 6 Schedule Management: Direncanakan
+- Phase 7 QR Attendance: Direncanakan
+- Phase 8 Selfie Attendance: Direncanakan
+- Phase 9 Attendance Status & Automation: Direncanakan
+- Phase 10 Admin Dashboard: Direncanakan
+- Phase 11 Member Dashboard: Direncanakan
+- Phase 12 Reporting: Direncanakan
+- Phase 13 Security & Testing: Direncanakan
+- Phase 14 Deployment: Direncanakan
+- Phase 15 Release & Documentation: Direncanakan
+
+Pembedaan status: Direncanakan, Dibuat, Dijalankan, Diuji, Berhasil, Siap digunakan. Jangan menyatakan fitur selesai hanya karena kodenya ditulis.
+
+## 8. Aturan Bisnis (jangan diubah tanpa diskusi)
+
+**Role**
+
+- Administrator: login dari mana saja, bebas geofence, akses penuh (kelola anggota, kategori, posko, QR, riwayat, selfie, laporan, ekspor Excel/PDF, pengaturan).
+- Anggota: login hanya dalam radius posko; absen sesuai jadwal; hanya melihat data, selfie, riwayat, dan statistik miliknya sendiri.
+- Semua pembatasan wajib di backend, bukan hanya menyembunyikan tombol.
+
+**Geofencing**
+
+- Radius 30 meter dari posko, Haversine di backend.
+- Divalidasi saat login, absensi, dan proses QR.
+- GPS mati, izin ditolak: proses ditolak. Akurasi buruk: diminta ulang.
+- Koordinat posko disimpan di pengaturan database. JANGAN MENGARANG koordinat. Minta dari pemilik proyek saat Phase 5.
+- Jelaskan bahwa GPS spoofing masih mungkin, siapkan mitigasi yang wajar.
+
+**Kategori jadwal** (hanya menentukan hari wajib, bukan jam)
+
+- Stay: wajib Senin-Minggu.
+- Shift Malam: wajib Senin-Minggu.
+- Weekend: wajib Sabtu-Minggu.
+- Hari tidak wajib tidak dihitung Tidak Hadir. Admin dapat mengubah kategori anggota.
+
+**Waktu**
+
+- Asia/Jakarta, absensi 00.00-23.59 WIB.
+- Satu absensi berhasil per anggota per hari, dengan unique constraint di database.
+- Tidak ada status Terlambat, tidak ada absensi pagi/sore.
+
+**Status:** Hadir, Menunggu, Tidak Hadir. Tidak Hadir ditetapkan otomatis oleh Laravel Scheduler (dan Cron di server) setelah hari berakhir, bukan saat dashboard dibuka.
+
+**QR Code:** dibuat admin, token acak sulit ditebak, ada masa berlaku, diverifikasi server, tidak bisa dipakai ulang, terikat sesi absensi valid.
+
+**Selfie:** wajib, kamera langsung (utamakan kamera depan), ada preview, bukan dari galeri, validasi tipe dan ukuran di backend, disimpan di storage privat, admin melihat semua, anggota hanya miliknya. Jangan mengklaim face recognition.
+
+**Laporan:** harian, mingguan, bulanan, per anggota, per kategori, rentang tanggal; berisi nama, kategori, jumlah hari wajib, Hadir, Tidak Hadir, persentase; ekspor Excel dan PDF.
+
+**Keamanan wajib:** hashing password, CSRF, validasi backend, autentikasi, otorisasi, role middleware, rate limiting, validasi token QR, cegah absensi ganda, validasi file selfie, foto privat, transaction, activity log admin, HTTPS saat deployment, backup berkala.
+
+## 9. Struktur File Penting
+
+Dicatat dari pemeriksaan sebelumnya. Lihat bagian Struktur Folder di SYSTEM_ARCHITECTURE.
+
+- app/Http/Controllers/Controller.php, app/Models/User.php, app/Providers/AppServiceProvider.php (semua bawaan)
+- routes/web.php, routes/console.php
+- resources/views/welcome.blade.php, resources/css/app.css, resources/js/app.js
+- database/migrations (3 migration bawaan)
+- .env (rahasia, tidak masuk Git, jangan ditampilkan)
+
+## 10. Perubahan Database
+
+Tidak ada perubahan buatan sendiri. Hanya 9 tabel bawaan Laravel. Tabel users masih struktur bawaan (belum ada role, kategori jadwal, status aktif). Detail: bagian DATABASE DOCUMENTATION.
+
+## 11. Package
+
+Hanya package bawaan Laravel. Daftar lengkap lihat `composer.json`. Package tambahan (QR, ekspor Excel/PDF, dan lainnya) belum dipasang dan harus dicek kompatibilitasnya terlebih dahulu.
+
+## 12. Status Fitur
+
+- Selesai: proyek Laravel, koneksi database, migration bawaan, Git dan push awal, audit 2026-11-06.
+- Dibuat: dokumentasi di docs/ (belum di-commit).
+- Belum dikerjakan: seluruh fitur absensi.
+
+## 13. Error, Pengujian, Keputusan
+
+- Error yang sudah diperbaiki: tidak ada.
+- Error yang masih terbuka: tidak ada.
+- Hasil pengujian: audit 2026-11-06 berhasil. Tidak ada pengujian fitur karena fitur belum ada.
+- Keputusan belum ditentukan: koordinat posko (Phase 5), durasi kedaluwarsa QR (Phase 7), pilihan frontend (Phase 2).
+- Pending: foreign key belum diverifikasi (query baru membaca indeks).
+
+## 14. Langkah Pertama Sesi Berikutnya
+
+Minta pemilik proyek menjalankan di C:\laragon\www\kkn-management-system:
+
+```bash
+git status
+git branch
+git log --oneline -5
+dir docs
+php artisan --version
+php artisan migrate:status
+php artisan route:list
+```
+
+Lalu:
+
+1. Bandingkan hasilnya dengan dokumen ini.
+2. Jika docs/ masih Untracked, tanyakan apakah pemilik proyek sudah menyetujui isi dokumentasi, lalu bantu commit dan push dengan menjelaskan dampaknya lebih dulu.
+3. Setelah itu nyatakan Phase 0 selesai dan mulai Phase 1 - System Analysis. Jangan coding fitur sebelum analisis disetujui.
