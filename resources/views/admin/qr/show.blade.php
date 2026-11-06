@@ -24,8 +24,14 @@
 
                 @if ($svg)
                 <div class="text-center mb-3">
-                    {!! $svg !!}
-                    <div class="form-text">QR hanya tampil sekali. Jika halaman ini ditutup atau dimuat ulang, buat ulang QR.</div>
+                    <div id="qrBox">{!! $svg !!}</div>
+                    <div class="mt-3">
+                        <button type="button" id="unduhQr" class="btn btn-success">Unduh QR (PNG)</button>
+                    </div>
+                    <div class="form-text mt-2">
+                        Unduh QR sekarang. Jika halaman ini ditutup atau dimuat ulang, QR tidak bisa ditampilkan lagi.
+                        QR yang sudah diunduh tetap berlaku sampai akhir hari, walaupun admin logout.
+                    </div>
                 </div>
                 @endif
 
@@ -53,4 +59,39 @@
         </div>
     </div>
 </div>
+
+@if ($svg)
+<script>
+    document.getElementById('unduhQr').addEventListener('click', function() {
+        var asli = document.querySelector('#qrBox svg');
+        if (!asli) {
+            alert('QR tidak ditemukan di halaman.');
+            return;
+        }
+
+        var size = 800,
+            pad = 40;
+        var svg = asli.cloneNode(true);
+        svg.setAttribute('width', size);
+        svg.setAttribute('height', size);
+        var xml = new XMLSerializer().serializeToString(svg);
+
+        var img = new Image();
+        img.onload = function() {
+            var c = document.createElement('canvas');
+            c.width = size + pad * 2;
+            c.height = size + pad * 2;
+            var ctx = c.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(img, pad, pad, size, size);
+            var a = document.createElement('a');
+            a.href = c.toDataURL('image/png');
+            a.download = 'qr-absensi-' + new Date().toISOString().slice(0, 10) + '.png';
+            a.click();
+        };
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+    });
+</script>
+@endif
 @endsection

@@ -11,6 +11,7 @@
             <a href="{{ route('admin.members.index') }}" class="btn btn-primary">Kelola Anggota</a>
             <a href="{{ route('admin.logs.index') }}" class="btn btn-outline-primary">Riwayat Aktivitas</a>
             <a href="{{ route('admin.qr.show') }}" class="btn btn-outline-primary">QR Absensi</a>
+            <a href="{{ route('admin.attendances.index') }}" class="btn btn-outline-primary">Data Absensi</a>
             <a href="{{ route('password.edit') }}" class="btn btn-outline-primary">Ganti Password</a>
             <a href="{{ route('admin.settings.edit') }}" class="btn btn-outline-primary">Pengaturan Posko</a>
         </div>

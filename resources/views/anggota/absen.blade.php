@@ -11,17 +11,16 @@
             {{ $message }}
         </div>
 
-        @if (! empty($token))
+        @if (! empty($showForm))
         <form method="POST" action="{{ route('anggota.absen.lokasi') }}" id="absen-form" enctype="multipart/form-data" class="mb-3">
             @csrf
-            <input type="hidden" name="t" value="{{ $token }}">
             <input type="hidden" name="latitude" id="latitude">
             <input type="hidden" name="longitude" id="longitude">
             <input type="hidden" name="accuracy" id="accuracy">
             <input type="file" name="selfie" id="selfie-input" accept="image/jpeg" hidden>
 
             <div class="mb-3">
-                <video id="camera" class="w-100 rounded border" autoplay playsinline muted hidden></video>
+                <video id="camera" class="w-100 rounded border" style="transform: scaleX(-1);" autoplay playsinline muted hidden></video>
                 <canvas id="canvas" hidden></canvas>
                 <img id="preview" class="w-100 rounded border" alt="Pratinjau selfie" hidden>
             </div>
@@ -42,7 +41,7 @@
     </div>
 </div>
 
-@if (! empty($token))
+@if (! empty($showForm))
 <script>
     (function() {
         var form = document.getElementById('absen-form');
@@ -78,7 +77,7 @@
             camError.hidden = true;
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showCameraError('Browser ini tidak mendukung kamera. Gunakan browser lain.');
+                showCameraError('Browser ini tidak mendukung kamera, atau halaman ini tidak memakai HTTPS. Gunakan browser lain.');
                 return;
             }
 
@@ -118,7 +117,10 @@
             var scale = Math.min(1, 720 / w);
             canvas.width = Math.round(w * scale);
             canvas.height = Math.round(h * scale);
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            var ctx = canvas.getContext('2d');
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             canvas.toBlob(function(blob) {
                 if (!blob) {
@@ -199,6 +201,9 @@
                 }
             );
         });
+
+        // Langsung buka kamera saat halaman tampil.
+        openBtn.click();
     })();
 </script>
 @endif

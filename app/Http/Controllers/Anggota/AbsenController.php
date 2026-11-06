@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Attendance;
 use App\Services\GeofenceService;
-use App\Services\QrSessionService;
 use App\Services\ScheduleService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -19,39 +18,29 @@ use Throwable;
 
 class AbsenController extends Controller
 {
-    private const QR_MESSAGES = [
-        'invalid' => 'QR tidak dikenali. Pindai ulang QR dari administrator.',
-        'revoked' => 'QR ini sudah dicabut. Minta QR terbaru dari administrator.',
-        'wrong_date' => 'QR ini bukan untuk hari ini.',
-        'expired' => 'QR sudah kedaluwarsa. Minta QR terbaru dari administrator.',
-    ];
-
     public function __construct(
-        private QrSessionService $qr,
         private ScheduleService $schedule,
         private GeofenceService $geofence,
     ) {}
 
     public function show(Request $request): View
     {
-        $token = $this->tokenFrom($request->query('t'));
-        $problem = $this->precheck($request, $token);
+        $problem = $this->precheck($request);
 
         if ($problem) {
             return $this->result($problem['type'], $problem['message']);
         }
 
         return $this->result(
-            'success',
-            'QR valid. Hari ini hari wajib Anda dan Anda belum absen. Ambil selfie dari kamera, lalu kirim absen.',
-            $token
+            'info',
+            'Buka kamera, ambil selfie, lalu kirim absen. Lokasi Anda akan diperiksa saat dikirim.',
+            true
         );
     }
 
     public function lokasi(Request $request): View
     {
-        $token = $this->tokenFrom($request->input('t'));
-        $problem = $this->precheck($request, $token);
+        $problem = $this->precheck($request);
 
         if ($problem) {
             return $this->result($problem['type'], $problem['message']);
@@ -69,7 +58,7 @@ class AbsenController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return $this->result('danger', $validator->errors()->first('selfie'), $token);
+            return $this->result('danger', $validator->errors()->first('selfie'), true);
         }
 
         $latitude = $this->numberOrNull($request->input('latitude'));
@@ -87,18 +76,17 @@ class AbsenController extends Controller
                 "Absen ditolak: {$result['reason']}{$detail}"
             );
 
-            return $this->result('danger', $result['message'], $token);
+            return $this->result('danger', $result['message'], true);
         }
 
         $user = $request->user();
         $today = CarbonImmutable::now(config('app.timezone'))->toDateString();
-        $qrSession = $this->qr->verify($token)['session'];
         $path = null;
 
         try {
             $path = Storage::disk('selfie')->putFile($today, $request->file('selfie'));
 
-            DB::transaction(function () use ($user, $today, $latitude, $longitude, $accuracy, $result, $path, $qrSession) {
+            DB::transaction(function () use ($user, $today, $latitude, $longitude, $accuracy, $result, $path) {
                 Attendance::create([
                     'user_id' => $user->id,
                     'attendance_date' => $today,
@@ -110,7 +98,7 @@ class AbsenController extends Controller
                     'accuracy_m' => $accuracy,
                     'distance_m' => $result['distance_m'],
                     'selfie_path' => $path,
-                    'qr_session_id' => $qrSession?->id,
+                    'qr_session_id' => null,
                 ]);
             });
         } catch (UniqueConstraintViolationException) {
@@ -135,17 +123,9 @@ class AbsenController extends Controller
     /**
      * @return array{type: string, message: string}|null  null berarti semua pemeriksaan lolos
      */
-    private function precheck(Request $request, ?string $token): ?array
+    private function precheck(Request $request): ?array
     {
         $user = $request->user();
-        $verified = $this->qr->verify($token);
-
-        if (! $verified['valid']) {
-            return [
-                'type' => 'danger',
-                'message' => self::QR_MESSAGES[$verified['reason']] ?? 'QR tidak valid.',
-            ];
-        }
 
         if (! $this->schedule->isRequiredToday($user->schedule_category)) {
             return ['type' => 'secondary', 'message' => 'Hari ini bukan hari wajib Anda, jadi tidak perlu absen.'];
@@ -171,18 +151,13 @@ class AbsenController extends Controller
         }
     }
 
-    private function tokenFrom(mixed $value): ?string
-    {
-        return is_string($value) && $value !== '' ? $value : null;
-    }
-
     private function numberOrNull(mixed $value): ?float
     {
         return is_numeric($value) ? (float) $value : null;
     }
 
-    private function result(string $type, string $message, ?string $token = null): View
+    private function result(string $type, string $message, bool $showForm = false): View
     {
-        return view('anggota.absen', ['type' => $type, 'message' => $message, 'token' => $token]);
+        return view('anggota.absen', ['type' => $type, 'message' => $message, 'showForm' => $showForm]);
     }
 }

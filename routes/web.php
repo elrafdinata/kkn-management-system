@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\SelfieController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AttendanceController;
 
 Route::view('/', 'home');
 
@@ -49,6 +50,8 @@ Route::middleware(['auth', 'aktif', 'role:admin'])
         Route::get('/qr', [QrController::class, 'show'])->name('qr.show');
         Route::post('/qr', [QrController::class, 'store'])->name('qr.store');
         Route::delete('/qr', [QrController::class, 'revoke'])->name('qr.revoke');
+
+        Route::get('/absensi', [AttendanceController::class, 'index'])->name('attendances.index');
     });
 
 Route::middleware(['auth', 'aktif', 'role:anggota'])
