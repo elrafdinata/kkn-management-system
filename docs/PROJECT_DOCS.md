@@ -1275,83 +1275,89 @@ Di laptop: sidebar tetap. Di smartphone: sidebar menjadi menu geser (offcanvas).
 - Menunggu persetujuan pemilik proyek. Tidak ada coding sebelum desain disetujui.
 - Setelah disetujui: Phase 3 Project Foundation.
 
-## CHECKPOINT AKHIR SESI 2026-11-06 (sesi 4, MENGGANTIKAN checkpoint sebelumnya)
+## CHECKPOINT AKHIR SESI 5 (2026-11-06)
 
 Bagian ini adalah kondisi terbaru. Jika bertentangan dengan bagian lain di PROJECT_DOCS.md atau MASTER_PROMPT_v2.md, ikuti bagian ini. Kondisi repository dan kode aktual tetap sumber kebenaran utama.
 
-### Keputusan pemilik proyek
+### Keputusan pemilik proyek (baru di sesi 5)
 
-- Dokumentasi tetap satu file: docs/PROJECT_DOCS.md. docs/MASTER_PROMPT_v2.md tetap terpisah. Repository PUBLIC: jangan menulis koordinat posko, password, token QR, atau nama database proyek lain.
-- Perbarui dokumen hanya saat pemilik proyek berkata sesi hampir habis.
-- Satu langkah kecil per giliran. Jangan kirim banyak file sekaligus. Hal yang tidak bisa diuji sekarang harus disebut di awal pesan.
-- Radius geofence 50 m dan batas akurasi GPS 50 m.
-- Selfie: hanya JPEG, maksimum 5 MB, disimpan di disk privat selfie.
-- Tabel attendances memakai category_snapshot. Status Menunggu tidak disimpan, dihitung dari hari wajib dan ketiadaan baris.
-- Anggota memindai QR lewat tombol Scan QR Absen di dashboard (kamera belakang, BarcodeDetector). Tidak didukung Safari iPhone. Pemindai cadangan (jsQR) ditambahkan bila ada anggota iPhone.
-- Akun anggota sungguhan dibuat mendekati deployment, setelah uji GPS asli di smartphone.
+- Alur absen final: anggota datang ke posko, memindai QR dengan kamera HP biasa, link terbuka, anggota login (geofence dicek), masuk dashboard (status Menunggu dan tombol Absen Sekarang), halaman absen langsung membuka kamera depan, anggota mengambil selfie lalu mengirim bersama lokasi, status menjadi Hadir.
+- QR hanya pintu masuk ke link. Token QR tidak lagi diperiksa di halaman absen, kolom qr_session_id disimpan null, dan tombol Cabut QR tidak lagi menghentikan absen. Konsekuensi ini sudah dijelaskan dan diterima pemilik. Perlindungan tersisa: login, geofence 50 m, selfie, dan satu absensi per hari.
+- QR berlaku satu hari (sampai 23:59 WIB). Admin mengunduh QR sebagai PNG (tombol Unduh QR) lalu boleh logout. QR tidak bisa ditampilkan ulang setelah halaman ditutup.
+- Akun raclraf adalah akun anggota sungguhan milik pemilik proyek dan tetap aktif. Catatan lama "dinonaktifkan setelah uji" tidak berlaku.
+- Radius geofence 50 m, batas akurasi GPS 50 m, selfie JPEG maksimum 5 MB.
+- Pemindai cadangan jsQR dan tombol Scan QR Absen tidak diperlukan lagi.
+- Hosting: pemilik ingin yang gratis. Belum ada keputusan.
+- Dokumentasi hanya diperbarui saat pemilik berkata sesi hampir habis. Repository PUBLIC: jangan menulis koordinat posko, password, token QR, atau nama database proyek lain.
 
 ### Posisi proyek
 
-- Phase 0 sampai 4: selesai.
-- Phase 5 Geofencing: selesai di sisi backend. Uji GPS asli di smartphone belum dilakukan.
-- Phase 6 dan 7: sudah di-commit (ad35c62) dan di-push.
-- Phase 8 Selfie (bagian kamera di halaman absen) dan sebagian Phase 9 (simpan absensi): kode dibuat, belum terbukti di browser.
-- Git: branch main. Commit terakhir sebelum penutupan ini ad35c62. Perubahan sesi 4 di-commit saat penutupan (cek git log --oneline -3).
+- Phase 0 sampai 7: selesai dan di-commit.
+- Phase 8 (selfie) dan Phase 9 (simpan absensi, penetapan Tidak Hadir): kode dibuat dan di-commit (67c0df4, sudah di-push). Belum terbukti sampai absensi tersimpan.
+- Phase 10 (dashboard admin): baru halaman Data Absensi (/admin/absensi). Statistik belum ada.
+- Phase 11 sampai 15: belum dimulai.
+- Git: branch main, commit terakhir yang terbukti ter-push adalah 67c0df4.
 
-### Status pekerjaan sesi 4
+### Status pekerjaan sesi 5
 
-| Bagian                                                        | Status         | Bukti                                                                              |
-| ------------------------------------------------------------- | -------------- | ---------------------------------------------------------------------------------- |
-| Commit Phase 6 dan 7                                          | Berhasil       | Commit ad35c62, sinkron dengan origin                                              |
-| Radius 50 di config/kkn.php                                   | Berhasil       | findstr menunjukkan radius_m dan max_gps_accuracy_m bernilai 50                    |
-| Disk selfie (private, serve false)                            | Berhasil       | tinker menampilkan root dan serve false                                            |
-| Tabel attendances                                             | Berhasil       | migrate DONE, db:table: 14 kolom, unique (user_id, attendance_date), 2 foreign key |
-| Model Attendance                                              | Berhasil       | tinker Attendance::count() menghasilkan 0                                          |
-| Login anggota dengan geofence (koordinat palsu lewat Console) | Berhasil       | Tangkapan layar masuk ke /anggota                                                  |
-| Dashboard anggota (kategori, tanggal, badge Hari wajib)       | Berhasil       | Tangkapan layar /anggota                                                           |
-| AbsenController (QR, hari wajib, selfie, lokasi, simpan)      | Dibuat         | php -l lolos, route terpasang, putFile ada. Belum terbukti di browser              |
-| View absen (kamera, preview, GPS)                             | Dibuat         | getUserMedia ada di file. Belum terbukti di browser                                |
-| SelfieController (hanya admin atau pemilik, selain itu 404)   | Dibuat         | php -l lolos, route selfie.show terpasang                                          |
-| Absen tersimpan ke attendances                                | Belum terbukti | Attendance::count() masih 0, folder storage/app/private/selfie belum ada           |
-| Tombol QR Absensi di dashboard admin                          | Belum terbukti | -                                                                                  |
+| Bagian                                                       | Status         | Bukti                                                                                                                            |
+| ------------------------------------------------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Commit dan push 67c0df4                                      | Berhasil       | Keluaran push `af747da..67c0df4 main -> main`                                                                                    |
+| Perbaikan tipe disk di SelfieController (garis merah editor) | Dibuat         | Hasil commit dan push TIDAK terbukti. Cek git status                                                                             |
+| Halaman QR admin tanpa error                                 | Berhasil       | Tangkapan layar /admin/qr, QR tampil                                                                                             |
+| Tombol Unduh QR (PNG)                                        | Berhasil       | File PNG berisi QR hitam di latar putih                                                                                          |
+| Login anggota dengan geofence (koordinat lewat Console)      | Berhasil       | Tangkapan layar masuk /anggota                                                                                                   |
+| Dashboard anggota status Menunggu                            | Berhasil       | Tangkapan layar badge Menunggu                                                                                                   |
+| Tombol Absen Sekarang di dashboard                           | Belum terbukti | Halaman /anggota/absen terbuka, tetapi belum dipastikan lewat tombol                                                             |
+| Halaman absen tanpa token, kamera depan, preview             | Berhasil       | Tangkapan layar kamera dan preview                                                                                               |
+| Pembalikan mirror kamera (video dan foto)                    | Dibuat         | Arah gambar berubah di tangkapan layar. Kebenaran arah belum diuji dengan tulisan                                                |
+| Server menolak akurasi GPS laptop                            | Berhasil       | Pesan "Akurasi GPS kurang baik" saat login dan saat kirim absen                                                                  |
+| Simpan absen dan selfie ke disk dan tabel                    | Belum terbukti | Dilewati karena laptop. Attendance::count() terakhir terverifikasi 0 di sesi 4                                                   |
+| Halaman Data Absensi admin (/admin/absensi)                  | Berhasil       | Tangkapan layar halaman kosong dengan filter tanggal                                                                             |
+| Tombol Data Absensi di dashboard admin                       | Dibuat         | Belum dipastikan diklik                                                                                                          |
+| Tampilan baris data, filter nama, tombol Lihat selfie        | Belum terbukti | Belum ada data absensi                                                                                                           |
+| Badge Tidak Hadir di Data Absensi                            | Dibuat         | Belum dilihat di browser                                                                                                         |
+| Command absensi:tutup-hari                                   | Dibuat         | Terdaftar di `php artisan list absensi`. Dry-run memeriksa 0 anggota karena raclraf dibuat 2026-11-06 WIB. Logika belum terbukti |
+| Jadwal harian 00:05                                          | Dibuat         | `schedule:list` menampilkan `5 0 * * *`. Jalan otomatis butuh cron di server                                                     |
 
 ### Kesalahan yang terjadi dan solusinya
 
-- Kode AbsenController tertempel ke tab absen.blade.php. Terbukti lewat findstr (class AbsenController ada di file view). Diperbaiki dengan memindahkan file lewat terminal dan membuat ulang view.
-- Dua baris kode ditulis ke terminal sehingga tanda panah dibaca sebagai pengalihan keluaran dan membuat file kosong 30 dan 50 di root. Dihapus setelah dicek ukurannya 0 byte.
-- File nyasar QrSessionService.php di root (isi keluaran git diff). Dihapus. File asli di app/Services tidak tersentuh.
-- Kode Console memakai kerangka ISI_LATITUDE dan ISI_LONGITUDE yang belum diganti angka, sehingga login macet. Perlu angka asli dari halaman pengaturan posko.
-- Beberapa perintah findstr ditulis dalam satu baris sehingga gagal. Jalankan satu perintah per baris.
+- Teks dashboard menulis "Pindai QR di posko untuk absen". Itu menyesatkan karena QR hanya pintu masuk. Teks diganti.
+- Rancangan awal AbsenController menyimpan token QR di sesi lalu halaman absen mewajibkannya, sehingga muncul "QR tidak dikenali". Diperbaiki dengan menghapus pemeriksaan token (lihat keputusan pemilik).
+- Garis merah editor di SelfieController baris `response` (Intelephense menganggap method tidak ada). Bukan error runtime. Diperbaiki dengan anotasi FilesystemAdapter.
+- Pesan akurasi GPS di laptop bukan bug, melainkan geofence berfungsi. Akurasi GPS asli hanya bisa diuji di smartphone.
 
 ### Hal yang belum dipastikan (periksa di awal sesi)
 
-- Log Laravel (storage/logs/laravel.log) memuat satu exception yang belum teridentifikasi. Ambil pesan utamanya: Select-String -Pattern local.ERROR, dua baris terakhir.
-- Jalankan uji absen end to end di browser. Bukti: Attendance::count() menjadi 1 dan ada satu file .jpg di storage/app/private/selfie.
-- Status akun raclraf: belum dikonfirmasi sudah dinonaktifkan lagi setelah uji. Periksa lewat tinker.
-- Tabel qr_sessions berisi QR hari ini yang aktif. Buat QR baru bila token hilang (QR hanya tampil sekali).
-- Nilai cadangan radius di GeofenceService masih 30. Samakan menjadi 50 (tidak berdampak bila database terisi).
-- Buka /admin dan pastikan tombol QR Absensi ada.
+- Apakah perbaikan SelfieController sudah di-commit dan di-push: `git status` dan `git log --oneline -3`.
+- Pengaturan APP_URL, SESSION_DOMAIN, SESSION_SECURE_COOKIE di .env dan isi bootstrap/app.php (middleware trustProxies). Perlu dibaca sebelum uji lewat tunnel. Jangan menampilkan baris rahasia di .env.
+- Nilai cadangan radius di GeofenceService masih 30 (belum disamakan 50).
+- Tombol Absen Sekarang, tombol Data Absensi, dan arah kamera belum dibuktikan di browser.
 
 ### Keputusan terbuka
 
-- Pemindai cadangan untuk iPhone (jsQR) bila ada anggota yang memakainya.
-- Cara menguji pemindaian QR di HP: alamat .test tidak terjangkau HP. Perlu deployment atau tunnel HTTPS.
-- Kebijakan laporan bila kategori anggota diubah di tengah periode (rekomendasi: pakai category_snapshot).
+- Hosting permanen. Syarat dari kode: PHP 8.3 atau lebih baru (composer.json `^8.3`), HTTPS (kamera dan GPS di HP wajib HTTPS), MySQL, cron tiap menit untuk schedule:run, SSH untuk composer dan migrate, penyimpanan selfie yang permanen dan tidak dibuka publik.
+- Hasil pengecekan hosting gratis (belum diuji langsung, syarat bisa berubah): InfinityFree tidak punya SSH dan cron di paket gratis, sehingga penetapan Tidak Hadir otomatis tidak jalan. Vercel punya filesystem hanya-baca (tulis hanya /tmp), sehingga disk selfie perlu penyimpanan eksternal. VM gratis dari cloud besar (Google Cloud e2-micro, Oracle Always Free) memenuhi syarat tetapi pemilik harus memasang PHP, Nginx, dan MySQL sendiri.
+- Uji HP tanpa hosting: Cloudflare Quick Tunnel (gratis, tanpa akun, URL trycloudflare.com sementara, hanya untuk uji, tanpa jaminan uptime). Selama tunnel menyala, halaman login terbuka untuk siapa pun yang tahu URL. Pastikan password admin kuat dan tutup tunnel setelah uji.
+- Cara admin mengoreksi status absensi yang salah (belum dibuat).
+- Kebijakan laporan bila kategori anggota berubah di tengah periode (rekomendasi: pakai category_snapshot).
+- Akun anggota sungguhan dibuat mendekati deployment, setelah uji GPS asli di smartphone.
 
 ### Langkah selanjutnya (satu langkah kecil per giliran)
 
-1. Identifikasi exception di laravel.log, lalu uji absen end to end sampai Attendance::count() bernilai 1.
-2. Dashboard anggota membaca tabel attendances: Hadir (dengan jam), Menunggu, atau Bukan hari wajib.
-3. Tombol Scan QR Absen dan halaman pemindai kamera (hanya tampil saat status Menunggu).
-4. Halaman admin untuk melihat absensi dan selfie (route selfie.show sudah ada).
-5. Scheduler harian untuk menetapkan Tidak Hadir (Phase 9).
+1. Jalankan `git status` dan `git log --oneline -3`. Jika perbaikan SelfieController belum ter-commit, commit dan push setelah persetujuan.
+2. Baca pengaturan .env (hanya APP_URL, SESSION_DOMAIN, SESSION_SECURE_COOKIE) dan bootstrap/app.php, lalu siapkan aplikasi untuk berjalan di belakang tunnel HTTPS (trustProxies bila perlu).
+3. Pasang cloudflared (`winget install --id Cloudflare.cloudflared`), jalankan quick tunnel, lalu uji absen dari HP. Bukti berhasil: Attendance::count() bernilai 1 dan ada satu file .jpg di storage/app/private/selfie.
+4. Besok pagi: `php artisan absensi:tutup-hari --dry-run`. Jangan jalankan tanpa --dry-run sebelum yakin, karena raclraf adalah akun sungguhan dan akan ditandai Tidak Hadir bila tidak ada absensi hari itu.
+5. Putuskan hosting permanen, lalu uji 18 akun.
+6. Lanjut Phase 10 (statistik dashboard admin) atau Phase 12 (laporan dan ekspor).
 
 ### Cara kerja yang diminta pemilik proyek
 
 - Pemilik proyek menjawab cepat dan singkat. Beri daftar keputusan yang ringkas.
-- Hemat sesi: jangan minta pengecekan berlebihan atau tempel ulang file.
-- Bila hasil tidak muncul saat menempel, katakan belum terbukti.
-- Commit dan push hanya dengan persetujuan jelas, misalnya "commit Phase 7". Beri satu perintah dengan pengaman (.env, node_modules, .sqlite tidak ikut staging).
+- Satu langkah kecil per giliran. Hal yang tidak bisa diuji sekarang harus disebut di awal pesan.
+- Jangan memberi saran ulang yang sudah diputuskan pemilik. Bila pemilik berkata sudah, catat sebagai klaim pemilik dan jangan membantah, tetapi bedakan dari yang terbukti.
+- Commit dan push hanya dengan persetujuan jelas. Beri satu perintah dengan pengaman (.env, node_modules, .sqlite tidak ikut staging).
 - Migration hanya setelah kata "setuju migration".
 - Jika tidak bisa mengakses folder lokal, beri isi file lengkap dan jangan mengaku sudah mengubah file.
 - Jangan menulis perintah findstr berantai dalam satu baris, dan jangan menulis kode PHP atau JavaScript di blok yang bisa terbaca sebagai perintah terminal.
