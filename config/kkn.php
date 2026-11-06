@@ -11,7 +11,7 @@ return [
     'posko' => [
         'latitude' => env('KKN_POSKO_LATITUDE'),
         'longitude' => env('KKN_POSKO_LONGITUDE'),
-        'radius_m' => 30,
+        'radius_m' => 50,
         'max_gps_accuracy_m' => 50,
     ],
 ];

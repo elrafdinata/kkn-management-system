@@ -4,9 +4,11 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\QrController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Anggota\AbsenController;
 use App\Http\Controllers\Anggota\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\SelfieController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home');
@@ -54,4 +56,10 @@ Route::middleware(['auth', 'aktif', 'role:anggota'])
     ->name('anggota.')
     ->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/absen', [AbsenController::class, 'show'])->middleware('throttle:20,1')->name('absen');
+        Route::post('/absen/lokasi', [AbsenController::class, 'lokasi'])->middleware('throttle:20,1')->name('absen.lokasi');
     });
+
+Route::middleware(['auth', 'aktif', 'throttle:60,1'])
+    ->get('/selfie/{attendance}', [SelfieController::class, 'show'])
+    ->name('selfie.show');

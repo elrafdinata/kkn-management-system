@@ -1275,113 +1275,84 @@ Di laptop: sidebar tetap. Di smartphone: sidebar menjadi menu geser (offcanvas).
 - Menunggu persetujuan pemilik proyek. Tidak ada coding sebelum desain disetujui.
 - Setelah disetujui: Phase 3 Project Foundation.
 
-## CHECKPOINT AKHIR SESI 2026-11-06 (MENGGANTIKAN status lama)
+## CHECKPOINT AKHIR SESI 2026-11-06 (sesi 4, MENGGANTIKAN checkpoint sebelumnya)
 
 Bagian ini adalah kondisi terbaru. Jika bertentangan dengan bagian lain di PROJECT_DOCS.md atau MASTER_PROMPT_v2.md, ikuti bagian ini. Kondisi repository dan kode aktual tetap sumber kebenaran utama.
 
 ### Keputusan pemilik proyek
 
-- Dokumentasi digabung dalam satu file: docs/PROJECT_DOCS.md. Jangan membuat ulang tujuh file terpisah.
-- docs/MASTER_PROMPT_v2.md tetap terpisah dan ada di repository PUBLIC. Jangan menulis nama database proyek lain di file mana pun.
-- Jangan sertakan langkah pengujian per langkah (menghabiskan sesi). Pemilik proyek membuka browser sendiri dan menempel hasilnya bila ada masalah.
-- Jangan perbarui PROJECT_DOCS.md dan MASTER_PROMPT_v2.md setiap langkah berhasil. Perbarui hanya saat pemilik proyek berkata sesi hampir habis.
-- Status "Dibuat" tidak boleh ditulis "Berhasil" tanpa bukti (hasil perintah atau tangkapan layar).
+- Dokumentasi tetap satu file: docs/PROJECT_DOCS.md. docs/MASTER_PROMPT_v2.md tetap terpisah. Repository PUBLIC: jangan menulis koordinat posko, password, token QR, atau nama database proyek lain.
+- Perbarui dokumen hanya saat pemilik proyek berkata sesi hampir habis.
+- Satu langkah kecil per giliran. Jangan kirim banyak file sekaligus. Hal yang tidak bisa diuji sekarang harus disebut di awal pesan.
+- Radius geofence 50 m dan batas akurasi GPS 50 m.
+- Selfie: hanya JPEG, maksimum 5 MB, disimpan di disk privat selfie.
+- Tabel attendances memakai category_snapshot. Status Menunggu tidak disimpan, dihitung dari hari wajib dan ketiadaan baris.
+- Anggota memindai QR lewat tombol Scan QR Absen di dashboard (kamera belakang, BarcodeDetector). Tidak didukung Safari iPhone. Pemindai cadangan (jsQR) ditambahkan bila ada anggota iPhone.
+- Akun anggota sungguhan dibuat mendekati deployment, setelah uji GPS asli di smartphone.
 
 ### Posisi proyek
 
-- Phase 0, 1, 2: selesai dan disetujui.
-- Phase 3 Project Foundation: selesai.
-- Phase 4 Authentication and User Management: sebagian besar selesai. Sisa: ganti password sendiri dan halaman riwayat aktivitas admin.
-- Phase 5 dan seterusnya: belum dimulai.
-- Git: branch main. Commit terakhir 5f5abeb (Add Phase 3 foundation and Phase 4 login, user fields, admin seeder), sudah di-push. Perubahan setelahnya BELUM di-commit (lihat daftar di bawah).
+- Phase 0 sampai 4: selesai.
+- Phase 5 Geofencing: selesai di sisi backend. Uji GPS asli di smartphone belum dilakukan.
+- Phase 6 dan 7: sudah di-commit (ad35c62) dan di-push.
+- Phase 8 Selfie (bagian kamera di halaman absen) dan sebagian Phase 9 (simpan absensi): kode dibuat, belum terbukti di browser.
+- Git: branch main. Commit terakhir sebelum penutupan ini ad35c62. Perubahan sesi 4 di-commit saat penutupan (cek git log --oneline -3).
 
-### Status Phase 3 (selesai)
+### Status pekerjaan sesi 4
 
-| Langkah                                  | Status   | Bukti                                                                                                                                                                                                                                 |
-| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Zona waktu Asia/Jakarta dan locale id | Berhasil | Terbukti lewat tinker: Asia/Jakarta dan id. Nilai timezone ditulis langsung di config/app.php, APP_LOCALE=id di .env                                                                                                                  |
-| 2. Disk privat selfie                    | Berhasil | config/filesystems.php baris 36 serve = false. route:list --path=storage: tidak ada route. Uji akses file privat sebelum perubahan menghasilkan 403                                                                                   |
-| 3. Bootstrap 5 menggantikan Tailwind     | Berhasil | npm install dan npm run build berhasil. bootstrap 5.3.8, @popperjs/core 2.11.8, sass 1.107.1, vite 8.3.6, laravel-vite-plugin 3.2.1. Tailwind, blok font Instrument Sans, dan resources/css/app.css dihapus. Font memakai font sistem |
-| 4. Layout Blade mobile-first             | Berhasil | Halaman beranda tampil di browser (tangkapan layar). Layout di resources/views/layouts/app.blade.php. welcome.blade.php dihapus                                                                                                       |
-| 5. Middleware role dan aktif             | Berhasil | EnsureRole dan EnsureActive di app/Http/Middleware, alias role dan aktif di bootstrap/app.php. Terbukti dipakai: admin lolos ke /admin                                                                                                |
+| Bagian                                                        | Status         | Bukti                                                                              |
+| ------------------------------------------------------------- | -------------- | ---------------------------------------------------------------------------------- |
+| Commit Phase 6 dan 7                                          | Berhasil       | Commit ad35c62, sinkron dengan origin                                              |
+| Radius 50 di config/kkn.php                                   | Berhasil       | findstr menunjukkan radius_m dan max_gps_accuracy_m bernilai 50                    |
+| Disk selfie (private, serve false)                            | Berhasil       | tinker menampilkan root dan serve false                                            |
+| Tabel attendances                                             | Berhasil       | migrate DONE, db:table: 14 kolom, unique (user_id, attendance_date), 2 foreign key |
+| Model Attendance                                              | Berhasil       | tinker Attendance::count() menghasilkan 0                                          |
+| Login anggota dengan geofence (koordinat palsu lewat Console) | Berhasil       | Tangkapan layar masuk ke /anggota                                                  |
+| Dashboard anggota (kategori, tanggal, badge Hari wajib)       | Berhasil       | Tangkapan layar /anggota                                                           |
+| AbsenController (QR, hari wajib, selfie, lokasi, simpan)      | Dibuat         | php -l lolos, route terpasang, putFile ada. Belum terbukti di browser              |
+| View absen (kamera, preview, GPS)                             | Dibuat         | getUserMedia ada di file. Belum terbukti di browser                                |
+| SelfieController (hanya admin atau pemilik, selain itu 404)   | Dibuat         | php -l lolos, route selfie.show terpasang                                          |
+| Absen tersimpan ke attendances                                | Belum terbukti | Attendance::count() masih 0, folder storage/app/private/selfie belum ada           |
+| Tombol QR Absensi di dashboard admin                          | Belum terbukti | -                                                                                  |
 
-### Status Phase 4
+### Kesalahan yang terjadi dan solusinya
 
-| Bagian                                                                                               | Status                                                                                                                            | Bukti                                                                         |
-| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Migration kolom users (username unik, role, schedule_category, is_active, email boleh kosong)        | Berhasil                                                                                                                          | php artisan migrate: 2026_11_06_033249_add_account_fields_to_users_table DONE |
-| Seeder admin dari .env (KKN_ADMIN_NAME, KKN_ADMIN_USERNAME, KKN_ADMIN_PASSWORD lewat config/kkn.php) | Berhasil                                                                                                                          | Login admin berhasil di browser (halaman /admin tampil)                       |
-| Login dan logout (LoginController, rate limit 5 percobaan per username dan IP, kunci 60 detik)       | Login berhasil. Logout, rate limit, redirect tamu ke /login belum diuji                                                           | Tangkapan layar /admin                                                        |
-| Tabel activity_logs, model ActivityLog                                                               | Berhasil                                                                                                                          | Migration dijalankan, halaman anggota berjalan tanpa error                    |
-| Daftar anggota (admin)                                                                               | Berhasil                                                                                                                          | Tangkapan layar /admin/anggota                                                |
-| Tambah akun anggota                                                                                  | Berhasil                                                                                                                          | Akun uji raclraf berhasil dibuat, tampil di daftar                            |
-| Ubah akun, aktif atau nonaktif, reset password oleh admin                                            | Dibuat. Nonaktifkan terbukti (akun raclraf berstatus Nonaktif). Ubah nama atau kategori dan reset password belum dilihat hasilnya | Tangkapan layar daftar anggota                                                |
-| Ganti password sendiri                                                                               | Belum dibuat                                                                                                                      | -                                                                             |
-| Halaman riwayat aktivitas admin                                                                      | Belum dibuat                                                                                                                      | -                                                                             |
-
-### Perubahan BELUM di-commit (setelah 5f5abeb)
-
-- database/migrations/\*\_create_activity_logs_table.php (sudah di-migrate)
-- app/Models/ActivityLog.php
-- app/Http/Controllers/Admin/MemberController.php
-- resources/views/admin/members/index.blade.php, create.blade.php, edit.blade.php
-- resources/views/admin/dashboard.blade.php (tombol Kelola Anggota)
-- routes/web.php (route anggota: index, tambah, simpan, ubah, update, status, password)
-- docs/PROJECT_DOCS.md dan docs/MASTER_PROMPT_v2.md (checkpoint ini)
+- Kode AbsenController tertempel ke tab absen.blade.php. Terbukti lewat findstr (class AbsenController ada di file view). Diperbaiki dengan memindahkan file lewat terminal dan membuat ulang view.
+- Dua baris kode ditulis ke terminal sehingga tanda panah dibaca sebagai pengalihan keluaran dan membuat file kosong 30 dan 50 di root. Dihapus setelah dicek ukurannya 0 byte.
+- File nyasar QrSessionService.php di root (isi keluaran git diff). Dihapus. File asli di app/Services tidak tersentuh.
+- Kode Console memakai kerangka ISI_LATITUDE dan ISI_LONGITUDE yang belum diganti angka, sehingga login macet. Perlu angka asli dari halaman pengaturan posko.
+- Beberapa perintah findstr ditulis dalam satu baris sehingga gagal. Jalankan satu perintah per baris.
 
 ### Hal yang belum dipastikan (periksa di awal sesi)
 
-- resources/views/admin/members/edit.blade.php: baris onsubmit di form status sebaiknya berbunyi onsubmit="return confirm('Yakin mengubah status akun ini?')". Perbaikan ini disarankan tetapi belum dipastikan tersimpan. Garis merah di VS Code hanya peringatan editor.
-- app/Providers/AppServiceProvider.php: Paginator::useBootstrapFive() disarankan tetapi isi file belum dibaca dan belum dipastikan diterapkan. Baru terlihat saat anggota lebih dari 20.
-- bootstrap/app.php: redirectUsersTo disarankan memakai fn (Request $request) => $request->user()?->role === 'admin' ? '/admin' : '/anggota'. Belum dipastikan tersimpan.
-- Akun uji raclraf (anggota, kategori stay, berstatus Nonaktif) masih ada di database. Nama yang dipakai sama dengan nama admin. Boleh dibiarkan atau dihapus lewat tinker setelah persetujuan.
-
-### Keputusan desain final
-
-- Frontend: Blade + Bootstrap 5 (terpasang). Font sistem.
-- Login memakai username, bukan email. NIM dan nomor HP tidak dipakai.
-- Administrator tidak absen. 18 anggota absen. Total 19 akun. Akun anggota hanya dibuat admin. Anggota boleh mengganti password sendiri.
-- role bernilai admin atau anggota. schedule_category bernilai stay, shift_malam, atau weekend (kosong untuk admin).
-- Role dan status akun baru ditetapkan di kode (anggota, aktif), bukan dari input form.
-- Pesan gagal login dibuat satu jenis agar username tidak bisa ditebak.
-- Reset password menghapus semua sesi anggota di tabel sessions.
-- QR: satu sesi per tanggal, satu QR dipindai semua anggota, token disimpan sebagai hash.
-- Absensi dikirim sekaligus (GPS, QR, selfie) dalam satu transaction.
-- Status Menunggu tidak disimpan (dihitung). Hanya hadir dan tidak_hadir yang disimpan. Tidak Hadir dibuat oleh Scheduler harian.
-- Tabel attendances punya unique (user_id, attendance_date) dan kolom category_snapshot.
-- Geofence dijalankan service (Haversine) saat login anggota dan kirim absensi, bukan middleware di semua halaman.
-- Route: prefix /admin dan /anggota. Middleware: auth, aktif, role, policy absensi, rate limit login dan absensi.
-- Foto selfie disajikan lewat controller dengan pemeriksaan hak akses, bukan lewat URL storage.
-- Form ubah profil anggota nanti tidak boleh memakai $request->all() karena role ada di daftar Fillable. Pakai hanya field yang divalidasi.
-
-### Catatan keamanan dan teknis
-
-- .env berisi password admin dan tidak masuk Git. Jangan menampilkan atau meminta isi .env. Jangan menempel password ke chat.
-- Login anggota BELUM memeriksa radius 30 meter. Jangan membuat 18 akun anggota sungguhan sebelum Phase 5 selesai.
-- Build Bootstrap menampilkan banyak Deprecation Warning Sass. Itu peringatan dari Bootstrap 5.3.8, bukan error.
-- @laravel/multiplex berstatus UNMET OPTIONAL. Tidak diperiksa lebih lanjut.
-- Terminal Windows sering menempel banyak perintah di satu baris. Jalankan perintah satu per satu.
-- Peringatan CRLF dan LF saat git add tidak berbahaya.
+- Log Laravel (storage/logs/laravel.log) memuat satu exception yang belum teridentifikasi. Ambil pesan utamanya: Select-String -Pattern local.ERROR, dua baris terakhir.
+- Jalankan uji absen end to end di browser. Bukti: Attendance::count() menjadi 1 dan ada satu file .jpg di storage/app/private/selfie.
+- Status akun raclraf: belum dikonfirmasi sudah dinonaktifkan lagi setelah uji. Periksa lewat tinker.
+- Tabel qr_sessions berisi QR hari ini yang aktif. Buat QR baru bila token hilang (QR hanya tampil sekali).
+- Nilai cadangan radius di GeofenceService masih 30. Samakan menjadi 50 (tidak berdampak bila database terisi).
+- Buka /admin dan pastikan tombol QR Absensi ada.
 
 ### Keputusan terbuka
 
-- Koordinat posko (diberikan pemilik proyek di Phase 5, jangan dikarang).
-- Batas akurasi GPS max_gps_accuracy_m (Phase 5).
-- Durasi kedaluwarsa QR (Phase 7, beri rekomendasi dan minta persetujuan).
+- Pemindai cadangan untuk iPhone (jsQR) bila ada anggota yang memakainya.
+- Cara menguji pemindaian QR di HP: alamat .test tidak terjangkau HP. Perlu deployment atau tunnel HTTPS.
+- Kebijakan laporan bila kategori anggota diubah di tengah periode (rekomendasi: pakai category_snapshot).
 
 ### Langkah selanjutnya (satu langkah kecil per giliran)
 
-1. Pastikan ketiga hal di bagian "Hal yang belum dipastikan" sudah diterapkan.
-2. Phase 4 sisa: halaman ganti password sendiri (dengan password lama) dan halaman riwayat aktivitas admin (membaca activity_logs).
-3. Commit dan push dengan persetujuan eksplisit pemilik proyek.
-4. Phase 5 Geofencing: minta koordinat posko, buat tabel settings, service Haversine, validasi saat login anggota.
+1. Identifikasi exception di laravel.log, lalu uji absen end to end sampai Attendance::count() bernilai 1.
+2. Dashboard anggota membaca tabel attendances: Hadir (dengan jam), Menunggu, atau Bukan hari wajib.
+3. Tombol Scan QR Absen dan halaman pemindai kamera (hanya tampil saat status Menunggu).
+4. Halaman admin untuk melihat absensi dan selfie (route selfie.show sudah ada).
+5. Scheduler harian untuk menetapkan Tidak Hadir (Phase 9).
 
 ### Cara kerja yang diminta pemilik proyek
 
 - Pemilik proyek menjawab cepat dan singkat. Beri daftar keputusan yang ringkas.
-- Hemat sesi: jangan minta pengecekan berlebihan atau tempel ulang file. Jangan sertakan langkah pengujian.
-- Bila saat menempel ada hasil yang tidak muncul, katakan belum terbukti.
-- Untuk commit dan push: jelaskan dampak, lalu beri satu perintah dengan pengaman (periksa .env, node_modules, file .sqlite tidak ikut staging). Persetujuan eksplisit hanya jika pesan menyatakannya dengan jelas, misalnya "commit Phase 4".
-- Untuk migration: tunggu kata "setuju migration" sebelum memberi perintah php artisan migrate.
-- Saat Claude tidak bisa mengakses folder lokal, berikan isi file lengkap. Jangan mengaku sudah mengubah file.
-- Langkah pertama sesi baru: baca checkpoint ini, jalankan git status dan git log --oneline -3, lalu lanjut sesuai Langkah selanjutnya. Tidak perlu audit panjang.
+- Hemat sesi: jangan minta pengecekan berlebihan atau tempel ulang file.
+- Bila hasil tidak muncul saat menempel, katakan belum terbukti.
+- Commit dan push hanya dengan persetujuan jelas, misalnya "commit Phase 7". Beri satu perintah dengan pengaman (.env, node_modules, .sqlite tidak ikut staging).
+- Migration hanya setelah kata "setuju migration".
+- Jika tidak bisa mengakses folder lokal, beri isi file lengkap dan jangan mengaku sudah mengubah file.
+- Jangan menulis perintah findstr berantai dalam satu baris, dan jangan menulis kode PHP atau JavaScript di blok yang bisa terbaca sebagai perintah terminal.
+- Langkah pertama sesi baru: baca checkpoint ini, jalankan git status dan git log --oneline -3, lalu lanjut sesuai Langkah selanjutnya.
