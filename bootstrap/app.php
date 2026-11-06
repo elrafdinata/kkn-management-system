@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(
             fn(Request $request) => $request->user()?->role === 'admin' ? '/admin' : '/anggota'
         );
+
+        $middleware->trustProxies(at: '127.0.0.1');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
