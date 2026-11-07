@@ -60,6 +60,7 @@
                         <th class="text-end">Hari wajib</th>
                         <th class="text-end">Hadir</th>
                         <th class="text-end">Izin</th>
+                        <th class="text-end">Libur</th>
                         <th class="text-end">Tidak Hadir</th>
                         <th class="text-end">Menunggu</th>
                         <th class="text-end">Kehadiran</th>
@@ -73,13 +74,14 @@
                         <td class="text-end">{{ $r['required'] }}</td>
                         <td class="text-end text-success">{{ $r['hadir'] }}</td>
                         <td class="text-end text-info">{{ $r['izin'] }}</td>
+                        <td class="text-end text-secondary">{{ $r['libur'] }}</td>
                         <td class="text-end text-danger">{{ $r['tidak_hadir'] }}</td>
                         <td class="text-end text-warning">{{ $r['menunggu'] }}</td>
                         <td class="text-end fw-semibold">{{ $r['percent'] !== null ? $r['percent'] . '%' : '-' }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">Tidak ada anggota yang cocok dengan filter.</td>
+                        <td colspan="9" class="text-center text-muted py-4">Tidak ada anggota yang cocok dengan filter.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -90,6 +92,7 @@
                         <td class="text-end">{{ $totals['required'] }}</td>
                         <td class="text-end">{{ $totals['hadir'] }}</td>
                         <td class="text-end">{{ $totals['izin'] }}</td>
+                        <td class="text-end">{{ $totals['libur'] }}</td>
                         <td class="text-end">{{ $totals['tidak_hadir'] }}</td>
                         <td class="text-end">{{ $totals['menunggu'] }}</td>
                         <td class="text-end">{{ $totals['percent'] !== null ? $totals['percent'] . '%' : '-' }}</td>
@@ -99,7 +102,7 @@
             </table>
         </div>
 
-        <div class="form-text">Kehadiran = Hadir ÷ (Hadir + Tidak Hadir). Izin dan Menunggu tidak masuk perhitungan persentase.</div>
+        <div class="form-text">Kehadiran = Hadir ÷ (Hadir + Tidak Hadir). Izin, Libur, dan Menunggu tidak masuk perhitungan persentase. Hari Libur dikeluarkan dari hari wajib.</div>
     </div>
 </div>
 @endsection

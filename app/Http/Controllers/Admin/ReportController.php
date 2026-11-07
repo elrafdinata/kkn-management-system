@@ -94,11 +94,11 @@ class ReportController extends Controller
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
         $sheet->fromArray(
-            ['Nama', 'Kategori', 'Hari wajib', 'Hadir', 'Izin', 'Tidak Hadir', 'Menunggu', 'Kehadiran'],
+            ['Nama', 'Kategori', 'Hari wajib', 'Hadir', 'Izin', 'Libur', 'Tidak Hadir', 'Menunggu', 'Kehadiran'],
             null,
             'A4'
         );
-        $sheet->getStyle('A4:H4')->getFont()->setBold(true);
+        $sheet->getStyle('A4:I4')->getFont()->setBold(true);
 
         $line = 5;
         foreach ($result['rows'] as $r) {
@@ -108,6 +108,7 @@ class ReportController extends Controller
                 $r['required'],
                 $r['hadir'],
                 $r['izin'],
+                $r['libur'],
                 $r['tidak_hadir'],
                 $r['menunggu'],
                 $percent($r['percent']),
@@ -122,15 +123,16 @@ class ReportController extends Controller
             $t['required'],
             $t['hadir'],
             $t['izin'],
+            $t['libur'],
             $t['tidak_hadir'],
             $t['menunggu'],
             $percent($t['percent']),
         ], null, 'A' . $line);
-        $sheet->getStyle('A' . $line . ':H' . $line)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $line . ':I' . $line)->getFont()->setBold(true);
 
-        $sheet->setCellValue('A' . ($line + 2), 'Kehadiran = Hadir / (Hadir + Tidak Hadir). Izin dan Menunggu tidak masuk persentase.');
+        $sheet->setCellValue('A' . ($line + 2), 'Kehadiran = Hadir / (Hadir + Tidak Hadir). Izin, Libur, dan Menunggu tidak masuk persentase. Hari Libur dikeluarkan dari hari wajib.');
 
-        foreach (range('A', 'H') as $col) {
+        foreach (range('A', 'I') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

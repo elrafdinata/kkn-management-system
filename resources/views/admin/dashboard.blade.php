@@ -97,14 +97,18 @@
         @foreach ($trend as $day)
         @php
         $total = max($day['required'], 1);
+        $wHadir = round($day['hadir'] / $total * 100, 1);
+        $wIzin = round($day['izin'] / $total * 100, 1);
+        $wWaiting = round($day['waiting'] / $total * 100, 1);
+        $wMissed = round($day['missed'] / $total * 100, 1);
         @endphp
         <div class="d-flex align-items-center gap-2 mb-2">
             <div class="small text-nowrap" style="width: 5.5rem;">{{ $day['label'] }}</div>
             <div class="progress flex-grow-1" style="height: 1.25rem;">
-                <div class="progress-bar bg-success" style="width: {{ $day['hadir'] / $total * 100 }}%"></div>
-                <div class="progress-bar bg-info" style="width: {{ $day['izin'] / $total * 100 }}%"></div>
-                <div class="progress-bar bg-warning" style="width: {{ $day['waiting'] / $total * 100 }}%"></div>
-                <div class="progress-bar bg-danger" style="width: {{ $day['missed'] / $total * 100 }}%"></div>
+                <div class="progress-bar bg-success" @style(['width: ' . $wHadir . ' %'])></div>
+                <div class="progress-bar bg-info" @style(['width: ' . $wIzin . ' %'])></div>
+                <div class="progress-bar bg-warning" @style(['width: ' . $wWaiting . ' %'])></div>
+                <div class="progress-bar bg-danger" @style(['width: ' . $wMissed . ' %'])></div>
             </div>
             <div class="small text-nowrap text-end" style="width: 4.5rem;">{{ $day['hadir'] }}/{{ $day['required'] }}</div>
         </div>
