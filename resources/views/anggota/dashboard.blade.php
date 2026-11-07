@@ -16,6 +16,11 @@
         @if ($attendedTime)
         <span class="text-muted small ms-1">pukul {{ $attendedTime }} WIB</span>
         @endif
+        @elseif ($attendanceStatus === 'izin')
+        <span class="badge text-bg-info fs-6">Izin</span>
+        @if ($attendanceReason)
+        <div class="text-muted small mt-2">Alasan: {{ $attendanceReason }}</div>
+        @endif
         @elseif ($attendanceStatus === 'tidak_hadir')
         <span class="badge text-bg-danger fs-6">Tidak Hadir</span>
         @elseif ($attendanceStatus === 'menunggu')
@@ -29,7 +34,7 @@
 </div>
 
 <div class="row g-3 mb-3">
-    <div class="col-4">
+    <div class="col-6 col-md-3">
         <div class="card shadow-sm h-100">
             <div class="card-body text-center px-2">
                 <div class="text-muted small">Hadir</div>
@@ -37,7 +42,7 @@
             </div>
         </div>
     </div>
-    <div class="col-4">
+    <div class="col-6 col-md-3">
         <div class="card shadow-sm h-100">
             <div class="card-body text-center px-2">
                 <div class="text-muted small">Tidak Hadir</div>
@@ -45,7 +50,15 @@
             </div>
         </div>
     </div>
-    <div class="col-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center px-2">
+                <div class="text-muted small">Izin</div>
+                <div class="h3 mb-0 text-info">{{ $izinCount }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
         <div class="card shadow-sm h-100">
             <div class="card-body text-center px-2">
                 <div class="text-muted small">Kehadiran</div>
@@ -63,14 +76,19 @@
         @else
         <ul class="list-group list-group-flush">
             @foreach ($history as $row)
-            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <li class="list-group-item d-flex justify-content-between align-items-start px-0">
                 <span>{{ \Carbon\Carbon::parse($row->attendance_date)->format('d/m/Y') }}</span>
-                <span>
+                <span class="text-end">
                     @if ($row->status === 'hadir')
                     @if ($row->attended_at)
                     <span class="text-muted small me-1">{{ \Carbon\Carbon::parse($row->attended_at)->timezone(config('app.timezone'))->format('H:i') }}</span>
                     @endif
                     <span class="badge text-bg-success">Hadir</span>
+                    @elseif ($row->status === 'izin')
+                    <span class="badge text-bg-info">Izin</span>
+                    @if ($row->reason)
+                    <div class="text-muted small">{{ $row->reason }}</div>
+                    @endif
                     @else
                     <span class="badge text-bg-danger">Tidak Hadir</span>
                     @endif

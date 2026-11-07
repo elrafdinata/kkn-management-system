@@ -9,11 +9,13 @@ class Attendance extends Model
 {
     public const STATUS_HADIR = 'hadir';
     public const STATUS_TIDAK_HADIR = 'tidak_hadir';
+    public const STATUS_IZIN = 'izin';
 
     protected $fillable = [
         'user_id',
         'attendance_date',
         'status',
+        'reason',
         'attended_at',
         'category_snapshot',
         'latitude',

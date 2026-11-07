@@ -23,8 +23,12 @@ class DashboardController extends Controller
             ->first();
 
         // Menunggu tidak disimpan: dihitung dari hari wajib dan ketiadaan baris.
-        if ($attendance && $attendance->status === 'hadir') {
+        $attendanceReason = null;
+        if ($attendance && $attendance->status === Attendance::STATUS_HADIR) {
             $attendanceStatus = 'hadir';
+        } elseif ($attendance && $attendance->status === Attendance::STATUS_IZIN) {
+            $attendanceStatus = 'izin';
+            $attendanceReason = $attendance->reason;
         } elseif ($attendance) {
             $attendanceStatus = 'tidak_hadir';
         } elseif ($isRequiredToday) {
@@ -40,24 +44,27 @@ class DashboardController extends Controller
                 ->format('H:i');
         }
 
-        $hadirCount = Attendance::where('user_id', $user->id)->where('status', 'hadir')->count();
-        $tidakHadirCount = Attendance::where('user_id', $user->id)->where('status', 'tidak_hadir')->count();
+        $hadirCount = Attendance::where('user_id', $user->id)->where('status', Attendance::STATUS_HADIR)->count();
+        $tidakHadirCount = Attendance::where('user_id', $user->id)->where('status', Attendance::STATUS_TIDAK_HADIR)->count();
+        $izinCount = Attendance::where('user_id', $user->id)->where('status', Attendance::STATUS_IZIN)->count();
         $total = $hadirCount + $tidakHadirCount;
         $percent = $total > 0 ? (int) round($hadirCount / $total * 100) : null;
 
         $history = Attendance::where('user_id', $user->id)
             ->orderByDesc('attendance_date')
             ->limit(10)
-            ->get(['id', 'attendance_date', 'status', 'attended_at']);
+            ->get(['id', 'attendance_date', 'status', 'reason', 'attended_at']);
 
         return view('anggota.dashboard', [
             'categoryLabel' => $schedule->label($user->schedule_category),
             'isRequiredToday' => $isRequiredToday,
             'todayText' => $today->locale('id')->translatedFormat('l, d F Y'),
             'attendanceStatus' => $attendanceStatus,
+            'attendanceReason' => $attendanceReason,
             'attendedTime' => $attendedTime,
             'hadirCount' => $hadirCount,
             'tidakHadirCount' => $tidakHadirCount,
+            'izinCount' => $izinCount,
             'percent' => $percent,
             'history' => $history,
         ]);

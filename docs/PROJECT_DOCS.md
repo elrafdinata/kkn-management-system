@@ -236,3 +236,70 @@ git log --oneline -3
 ```
 
 Bandingkan dengan bagian 7. Jika ada perubahan yang belum di-commit, lindungi dulu dan jangan menyarankan `restore`, `reset`, atau `checkout`. Setelah itu lanjutkan sesuai bagian 9.
+
+---
+
+## Sesi 8 — 2026-11-07
+
+### Dikerjakan
+
+- Status **Izin** (keputusan: admin yang menetapkan, lewat formulir Koreksi / Izin).
+- Dashboard admin dengan statistik lanjutan.
+- Halaman **Laporan** dan ekspor Excel/PDF.
+- Package ekspor dipasang setelah dry-run kompatibilitas.
+
+### Database
+
+- Migration baru: `2026_11_07_115610_add_reason_to_attendances_table` (kolom `reason`, string 255, nullable, setelah `status`). Dijalankan (DONE). Kolom `status` bertipe string(20), nilai baru `izin`.
+- Cadangan sebelum migration: di folder temporer komputer pemilik (tidak di Git).
+
+### Package baru
+
+- `maatwebsite/excel` 4.0.6 (membawa `phpoffice/phpspreadsheet` 5.10.0) dan `barryvdh/laravel-dompdf` v3.1.2 (membawa `dompdf/dompdf` v3.1.6). Total 13 paket baru, tanpa paket lama berubah, tanpa advisory keamanan.
+
+### File dibuat
+
+- `app/Services/ReportService.php`, `app/Http/Controllers/Admin/ReportController.php`
+- `resources/views/admin/reports/index.blade.php`, `resources/views/admin/reports/pdf.blade.php`
+- `database/migrations/2026_11_07_115610_add_reason_to_attendances_table.php`
+
+### File diubah
+
+- `app/Models/Attendance.php` (`STATUS_IZIN`, `reason` di fillable)
+- `app/Http/Controllers/Admin/AttendanceCorrectionController.php` (status Izin, tanggal ke depan khusus Izin, validasi hari wajib)
+- `app/Http/Controllers/Admin/DashboardController.php` dan `resources/views/admin/dashboard.blade.php`
+- `app/Http/Controllers/Anggota/DashboardController.php` dan `resources/views/anggota/dashboard.blade.php`
+- `resources/views/admin/attendances/correct.blade.php`, `resources/views/admin/attendances/index.blade.php`
+- `routes/web.php` (route laporan, excel, pdf), `resources/views/layouts/app.blade.php` (menu Laporan)
+- `composer.json`, `composer.lock`
+
+### Rumus (keputusan sesi 8)
+
+Kehadiran = Hadir ÷ (Hadir + Tidak Hadir). Izin dan Menunggu tidak dihitung. Dashboard admin dan Laporan menghitung Tidak Hadir dari jadwal; dashboard anggota masih dari baris tersimpan (belum disamakan).
+
+### Pengujian
+
+| Item                                                   | Status                                     |
+| ------------------------------------------------------ | ------------------------------------------ |
+| Izin tersimpan dan tampil di Data Absensi              | Terbukti (tangkapan layar)                 |
+| Dashboard admin baru                                   | Terbukti (tangkapan layar)                 |
+| Halaman Laporan di layar                               | Terbukti (tangkapan layar)                 |
+| `absensi:tutup-hari --dry-run` (06/11)                 | Terbukti; versi sungguhan tidak dijalankan |
+| Unduh Excel dan PDF                                    | Klaim pemilik, belum ada bukti             |
+| Izin di beranda anggota                                | Dibuat, belum diuji                        |
+| Tombol Koreksi per baris (isi otomatis)                | Dibuat, belum diuji                        |
+| Koreksi Hadir/Tidak Hadir; blokir saat "Masuk sebagai" | Dibuat, belum diuji                        |
+
+### Git
+
+- Terakhir terverifikasi: `main` = `origin/main` di `ea53378`.
+- Perubahan sesi 8 BELUM di-commit (pemilik memilih "tunda"). Verifikasi dengan `git status`. Perubahan `docs/MASTER_PROMPT_KKN_MANAGEMENT_SYSTEM_UPDATED.md` juga belum di-commit.
+
+### Pending
+
+- Verifikasi ekspor Excel/PDF dan uji tampilan Izin sisi anggota.
+- Samakan perhitungan beranda anggota dengan rumus berbasis jadwal.
+- Rapikan pesan "sudah tercatat absen" untuk status Izin.
+- Samakan nilai cadangan radius `GeofenceService` dengan 50.
+- Phase 13 (uji keamanan) dan Phase 14 (hosting, scheduler, backup, uji 18 akun).
+- Keputusan commit menunggu pemilik.

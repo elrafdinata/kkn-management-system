@@ -7,7 +7,7 @@
     <div class="card-body">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <h1 class="h4 mb-0">Data Absensi</h1>
-            <a href="{{ url('admin/absensi/koreksi') }}" class="btn btn-outline-primary btn-sm">Koreksi Absensi</a>
+            <a href="{{ route('admin.attendances.correct') }}" class="btn btn-outline-primary btn-sm">Koreksi / Izin</a>
         </div>
 
         @if (session('success'))
@@ -61,8 +61,13 @@
                         <td>
                             @if ($row->status === 'hadir')
                             <span class="badge text-bg-success">Hadir</span>
+                            @elseif ($row->status === 'izin')
+                            <span class="badge text-bg-info">Izin</span>
                             @else
                             <span class="badge text-bg-danger">Tidak Hadir</span>
+                            @endif
+                            @if ($row->status === 'izin' && $row->reason)
+                            <div class="small text-muted">{{ $row->reason }}</div>
                             @endif
                         </td>
                         <td>{{ $row->attended_at ? \Carbon\Carbon::parse($row->attended_at)->timezone(config('app.timezone'))->format('H:i') : '-' }}</td>
@@ -76,7 +81,7 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ url('admin/absensi/koreksi') }}" class="btn btn-outline-warning btn-sm">Koreksi</a>
+                            <a href="{{ route('admin.attendances.correct', ['member' => $row->user_id, 'date' => \Carbon\Carbon::parse($row->attendance_date)->toDateString()]) }}" class="btn btn-outline-warning btn-sm">Koreksi</a>
                         </td>
                     </tr>
                     @empty

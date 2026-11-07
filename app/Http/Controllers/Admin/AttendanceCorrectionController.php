@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 class AttendanceCorrectionController extends Controller
 {
@@ -42,18 +41,21 @@ class AttendanceCorrectionController extends Controller
 
         $data = $request->validate([
             'member_id' => ['required', 'integer', Rule::exists('users', 'id')->where('role', 'anggota')],
-            'date' => ['required', 'date_format:Y-m-d', 'before_or_equal:' . $today],
-            'status' => ['required', Rule::in([Attendance::STATUS_HADIR, Attendance::STATUS_TIDAK_HADIR])],
+            'date' => ['required', 'date_format:Y-m-d'],
+            'status' => ['required', Rule::in([
+                Attendance::STATUS_HADIR,
+                Attendance::STATUS_TIDAK_HADIR,
+                Attendance::STATUS_IZIN,
+            ])],
             'reason' => ['required', 'string', 'min:5', 'max:255'],
         ], [
             'member_id.required' => 'Pilih anggota.',
             'member_id.exists' => 'Anggota tidak ditemukan.',
             'date.required' => 'Tanggal wajib diisi.',
             'date.date_format' => 'Format tanggal tidak valid.',
-            'date.before_or_equal' => 'Tanggal tidak boleh melewati hari ini.',
             'status.required' => 'Pilih status.',
             'status.in' => 'Status tidak valid.',
-            'reason.required' => 'Alasan koreksi wajib diisi.',
+            'reason.required' => 'Alasan wajib diisi.',
             'reason.min' => 'Alasan minimal 5 karakter.',
             'reason.max' => 'Alasan maksimal 255 karakter.',
         ]);
@@ -61,6 +63,13 @@ class AttendanceCorrectionController extends Controller
         $date = $data['date'];
         $newStatus = $data['status'];
         $reason = trim($data['reason']);
+
+        // Hadir dan Tidak Hadir tidak boleh untuk tanggal ke depan. Izin boleh.
+        if ($newStatus !== Attendance::STATUS_IZIN && $date > $today) {
+            return back()->withInput()->withErrors([
+                'date' => 'Tanggal tidak boleh melewati hari ini.',
+            ]);
+        }
 
         if ($newStatus === Attendance::STATUS_TIDAK_HADIR && $date >= $today) {
             return back()->withInput()->withErrors([
@@ -73,6 +82,7 @@ class AttendanceCorrectionController extends Controller
         $labels = [
             Attendance::STATUS_HADIR => 'Hadir',
             Attendance::STATUS_TIDAK_HADIR => 'Tidak Hadir',
+            Attendance::STATUS_IZIN => 'Izin',
         ];
 
         try {
@@ -89,17 +99,21 @@ class AttendanceCorrectionController extends Controller
                     throw new DomainException('Anggota ini belum punya kategori jadwal.');
                 }
 
-                if ($newStatus === Attendance::STATUS_TIDAK_HADIR && ! $schedule->isRequiredDay($category, $date)) {
-                    throw new DomainException('Tanggal itu bukan hari wajib bagi anggota ini, jadi tidak bisa ditetapkan Tidak Hadir.');
+                if (
+                    in_array($newStatus, [Attendance::STATUS_TIDAK_HADIR, Attendance::STATUS_IZIN], true)
+                    && ! $schedule->isRequiredDay($category, $date)
+                ) {
+                    throw new DomainException('Tanggal itu bukan hari wajib bagi anggota ini, jadi tidak bisa ditetapkan ' . $labels[$newStatus] . '.');
                 }
 
                 if ($row) {
-                    if ($row->status === $newStatus) {
+                    if ($row->status === $newStatus && $newStatus !== Attendance::STATUS_IZIN) {
                         throw new DomainException('Status anggota pada tanggal itu sudah ' . $labels[$newStatus] . '. Tidak ada yang diubah.');
                     }
 
                     $oldLabel = $labels[$row->status] ?? $row->status;
                     $row->status = $newStatus;
+                    $row->reason = $reason;
                     $row->save();
                 } else {
                     $oldLabel = 'belum ada data';
@@ -108,6 +122,7 @@ class AttendanceCorrectionController extends Controller
                         'user_id' => $member->id,
                         'attendance_date' => $date,
                         'status' => $newStatus,
+                        'reason' => $reason,
                         'attended_at' => null,
                         'category_snapshot' => $category,
                     ]);

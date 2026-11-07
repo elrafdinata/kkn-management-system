@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\QrController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Anggota\AbsenController;
 use App\Http\Controllers\Anggota\DashboardController;
@@ -61,6 +62,10 @@ Route::middleware(['auth', 'aktif', 'role:admin'])
         Route::get('/absensi', [AttendanceController::class, 'index'])->name('attendances.index');
         Route::get('/absensi/koreksi', [AttendanceCorrectionController::class, 'create'])->name('attendances.correct');
         Route::post('/absensi/koreksi', [AttendanceCorrectionController::class, 'store'])->name('attendances.correct.store');
+
+        Route::get('/laporan', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/laporan/excel', [ReportController::class, 'excel'])->name('reports.excel');
+        Route::get('/laporan/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
     });
 
 Route::middleware(['auth', 'aktif', 'role:anggota'])
