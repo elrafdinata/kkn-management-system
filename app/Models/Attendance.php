@@ -10,6 +10,7 @@ class Attendance extends Model
     public const STATUS_HADIR = 'hadir';
     public const STATUS_TIDAK_HADIR = 'tidak_hadir';
     public const STATUS_IZIN = 'izin';
+    public const STATUS_LIBUR = 'libur';
 
     protected $fillable = [
         'user_id',

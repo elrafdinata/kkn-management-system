@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Anggota;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Services\ReportService;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -12,7 +13,7 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request, ScheduleService $schedule): View
+    public function index(Request $request, ScheduleService $schedule, ReportService $report): View
     {
         $user = $request->user();
         $today = CarbonImmutable::now(config('app.timezone'));
@@ -29,6 +30,9 @@ class DashboardController extends Controller
         } elseif ($attendance && $attendance->status === Attendance::STATUS_IZIN) {
             $attendanceStatus = 'izin';
             $attendanceReason = $attendance->reason;
+        } elseif ($attendance && $attendance->status === Attendance::STATUS_LIBUR) {
+            $attendanceStatus = 'libur';
+            $attendanceReason = $attendance->reason;
         } elseif ($attendance) {
             $attendanceStatus = 'tidak_hadir';
         } elseif ($isRequiredToday) {
@@ -44,11 +48,13 @@ class DashboardController extends Controller
                 ->format('H:i');
         }
 
-        $hadirCount = Attendance::where('user_id', $user->id)->where('status', Attendance::STATUS_HADIR)->count();
-        $tidakHadirCount = Attendance::where('user_id', $user->id)->where('status', Attendance::STATUS_TIDAK_HADIR)->count();
-        $izinCount = Attendance::where('user_id', $user->id)->where('status', Attendance::STATUS_IZIN)->count();
-        $total = $hadirCount + $tidakHadirCount;
-        $percent = $total > 0 ? (int) round($hadirCount / $total * 100) : null;
+        // Statistik dari jadwal, sama dengan Laporan dan dashboard admin.
+        $stats = $report->build('2000-01-01', $today->toDateString(), null, '', $user->id)['rows'][0] ?? null;
+
+        $hadirCount = $stats['hadir'] ?? 0;
+        $tidakHadirCount = $stats['tidak_hadir'] ?? 0;
+        $izinCount = $stats['izin'] ?? 0;
+        $percent = $stats['percent'] ?? null;
 
         $history = Attendance::where('user_id', $user->id)
             ->orderByDesc('attendance_date')

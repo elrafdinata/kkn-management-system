@@ -63,10 +63,12 @@
                             <span class="badge text-bg-success">Hadir</span>
                             @elseif ($row->status === 'izin')
                             <span class="badge text-bg-info">Izin</span>
+                            @elseif ($row->status === 'libur')
+                            <span class="badge text-bg-secondary">Libur</span>
                             @else
                             <span class="badge text-bg-danger">Tidak Hadir</span>
                             @endif
-                            @if ($row->status === 'izin' && $row->reason)
+                            @if (in_array($row->status, ['izin', 'libur']) && $row->reason)
                             <div class="small text-muted">{{ $row->reason }}</div>
                             @endif
                         </td>

@@ -21,6 +21,11 @@
         @if ($attendanceReason)
         <div class="text-muted small mt-2">Alasan: {{ $attendanceReason }}</div>
         @endif
+        @elseif ($attendanceStatus === 'libur')
+        <span class="badge text-bg-secondary fs-6">Libur</span>
+        @if ($attendanceReason)
+        <div class="text-muted small mt-2">Keterangan: {{ $attendanceReason }}</div>
+        @endif
         @elseif ($attendanceStatus === 'tidak_hadir')
         <span class="badge text-bg-danger fs-6">Tidak Hadir</span>
         @elseif ($attendanceStatus === 'menunggu')
@@ -86,6 +91,11 @@
                     <span class="badge text-bg-success">Hadir</span>
                     @elseif ($row->status === 'izin')
                     <span class="badge text-bg-info">Izin</span>
+                    @if ($row->reason)
+                    <div class="text-muted small">{{ $row->reason }}</div>
+                    @endif
+                    @elseif ($row->status === 'libur')
+                    <span class="badge text-bg-secondary">Libur</span>
                     @if ($row->reason)
                     <div class="text-muted small">{{ $row->reason }}</div>
                     @endif

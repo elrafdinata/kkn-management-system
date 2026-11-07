@@ -14,7 +14,7 @@
             <div class="card-body">
                 <div class="text-muted small">Wajib hadir hari ini</div>
                 <div class="display-6 fw-semibold">{{ $requiredCount }}</div>
-                <div class="text-muted small">dari {{ $totalMembers }} anggota aktif</div>
+                <div class="text-muted small">dari {{ $totalMembers }} anggota aktif{{ $libur > 0 ? ', ' . $libur . ' libur' : '' }}</div>
             </div>
         </div>
     </div>

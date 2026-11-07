@@ -48,6 +48,7 @@ class DashboardController extends Controller
 
         $hadir = $required->filter(fn($m) => $statusOf($m->id, $today) === Attendance::STATUS_HADIR)->count();
         $izin = $required->filter(fn($m) => $statusOf($m->id, $today) === Attendance::STATUS_IZIN)->count();
+        $libur = $required->filter(fn($m) => $statusOf($m->id, $today) === Attendance::STATUS_LIBUR)->count();
         $tidakHadir = $required->filter(fn($m) => $statusOf($m->id, $today) === Attendance::STATUS_TIDAK_HADIR)->count();
 
         $waiting = $required
@@ -71,22 +72,25 @@ class DashboardController extends Controller
 
             $h = 0;
             $i = 0;
+            $l = 0;
             foreach ($days as $d) {
                 $s = $statusOf($m->id, $d);
                 if ($s === Attendance::STATUS_HADIR) {
                     $h++;
                 } elseif ($s === Attendance::STATUS_IZIN) {
                     $i++;
+                } elseif ($s === Attendance::STATUS_LIBUR) {
+                    $l++;
                 }
             }
 
             return [
                 'name' => $m->name,
                 'category' => $m->schedule_category,
-                'required' => count($days),
+                'required' => count($days) - $l,
                 'hadir' => $h,
                 'izin' => $i,
-                'missed' => max(0, count($days) - $h - $i),
+                'missed' => max(0, count($days) - $h - $i - $l),
             ];
         });
 
@@ -140,7 +144,8 @@ class DashboardController extends Controller
 
             $h = $dayRequired->filter(fn($m) => $statusOf($m->id, $date) === Attendance::STATUS_HADIR)->count();
             $i = $dayRequired->filter(fn($m) => $statusOf($m->id, $date) === Attendance::STATUS_IZIN)->count();
-            $total = $dayRequired->count();
+            $l = $dayRequired->filter(fn($m) => $statusOf($m->id, $date) === Attendance::STATUS_LIBUR)->count();
+            $total = $dayRequired->count() - $l;
 
             $trend[] = [
                 'label' => $d->locale('id')->translatedFormat('D d/m'),
@@ -155,7 +160,8 @@ class DashboardController extends Controller
         return view('admin.dashboard', [
             'today' => $today,
             'totalMembers' => $members->count(),
-            'requiredCount' => $required->count(),
+            'requiredCount' => $required->count() - $libur,
+            'libur' => $libur,
             'hadir' => $hadir,
             'izin' => $izin,
             'tidakHadir' => $tidakHadir,

@@ -13,7 +13,7 @@ class ReportService
     /**
      * @return array{rows: array<int, array<string, mixed>>, totals: array<string, mixed>}
      */
-    public function build(string $from, string $to, ?string $category = null, string $name = ''): array
+    public function build(string $from, string $to, ?string $category = null, string $name = '', ?int $userId = null): array
     {
         $tz = config('app.timezone');
         $today = CarbonImmutable::now($tz)->toDateString();
@@ -21,6 +21,7 @@ class ReportService
         $members = User::query()
             ->where('role', 'anggota')
             ->where('is_active', true)
+            ->when($userId, fn($q) => $q->where('id', $userId))
             ->when($category, fn($q) => $q->where('schedule_category', $category))
             ->when($name !== '', fn($q) => $q->where('name', 'like', '%' . $name . '%'))
             ->orderBy('name')
@@ -40,7 +41,7 @@ class ReportService
         }
 
         $rows = [];
-        $totals = ['required' => 0, 'hadir' => 0, 'izin' => 0, 'tidak_hadir' => 0, 'menunggu' => 0];
+        $totals = ['required' => 0, 'hadir' => 0, 'izin' => 0, 'libur' => 0, 'tidak_hadir' => 0, 'menunggu' => 0];
 
         foreach ($members as $m) {
             $created = $m->created_at
@@ -56,6 +57,7 @@ class ReportService
 
             $h = 0;
             $i = 0;
+            $l = 0;
             $x = 0;
             $w = 0;
 
@@ -66,6 +68,8 @@ class ReportService
                     $h++;
                 } elseif ($s === Attendance::STATUS_IZIN) {
                     $i++;
+                } elseif ($s === Attendance::STATUS_LIBUR) {
+                    $l++;
                 } elseif ($s === Attendance::STATUS_TIDAK_HADIR) {
                     $x++;
                 } elseif ($d < $today) {
@@ -75,20 +79,25 @@ class ReportService
                 }
             }
 
+            // Hari Libur dikeluarkan dari hari wajib.
+            $required = count($days) - $l;
+
             $rows[] = [
                 'name' => $m->name,
                 'category' => $this->schedule->label($m->schedule_category),
-                'required' => count($days),
+                'required' => $required,
                 'hadir' => $h,
                 'izin' => $i,
+                'libur' => $l,
                 'tidak_hadir' => $x,
                 'menunggu' => $w,
                 'percent' => $this->percent($h, $x),
             ];
 
-            $totals['required'] += count($days);
+            $totals['required'] += $required;
             $totals['hadir'] += $h;
             $totals['izin'] += $i;
+            $totals['libur'] += $l;
             $totals['tidak_hadir'] += $x;
             $totals['menunggu'] += $w;
         }

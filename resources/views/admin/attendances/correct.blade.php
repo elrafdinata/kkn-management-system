@@ -43,6 +43,7 @@
                     <option value="hadir" @selected(old('status')==='hadir' )>Hadir</option>
                     <option value="tidak_hadir" @selected(old('status')==='tidak_hadir' )>Tidak Hadir</option>
                     <option value="izin" @selected(old('status')==='izin' )>Izin</option>
+                    <option value="libur" @selected(old('status')==='libur' )>Libur</option>
                 </select>
             </div>
 

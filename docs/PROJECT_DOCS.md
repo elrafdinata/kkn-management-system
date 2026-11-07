@@ -303,3 +303,51 @@ Kehadiran = Hadir ÷ (Hadir + Tidak Hadir). Izin dan Menunggu tidak dihitung. Da
 - Samakan nilai cadangan radius `GeofenceService` dengan 50.
 - Phase 13 (uji keamanan) dan Phase 14 (hosting, scheduler, backup, uji 18 akun).
 - Keputusan commit menunggu pemilik.
+
+### Pembaruan akhir sesi 8
+
+- Git: `main` = `origin/main` di commit `d94e6d6` (sudah di-push). Pernyataan "belum di-commit" di blok sebelumnya sudah tidak berlaku.
+- Unduh Excel dan PDF di Laporan: berhasil (konfirmasi pemilik).
+
+---
+
+## Sesi 9 — 2026-11-07
+
+### Dikerjakan
+
+- Status **Libur** (admin menetapkan per anggota lewat Koreksi / Izin), tanpa migration karena `status` bertipe string.
+- Beranda anggota dihitung lewat `ReportService` (parameter baru `$userId`), sama dengan Laporan.
+- Pemeriksaan scheduler hosting. Tema **Karaksa** tahap 1 (SCSS, layout, logo, favicon) dan menu burger khusus HP.
+
+### File dibuat/diubah
+
+- Dibuat: `public/images/logo-karaksa30.jpg`.
+- Diubah: `app/Models/Attendance.php` (`STATUS_LIBUR`), `Admin/AttendanceCorrectionController.php`, `Admin/DashboardController.php`, `Anggota/DashboardController.php`, `app/Services/ReportService.php` (kolom `libur`, `$userId`), `resources/scss/app.scss`, `resources/views/layouts/app.blade.php`, `admin/attendances/correct.blade.php`, `admin/attendances/index.blade.php`, `admin/dashboard.blade.php`, `anggota/dashboard.blade.php`, dua file dokumentasi.
+- Tidak ada migration baru pada sesi 9.
+
+### Pengujian
+
+| Item                                      | Status                                         |
+| ----------------------------------------- | ---------------------------------------------- |
+| Unduh Excel dan PDF                       | Berhasil (konfirmasi pemilik)                  |
+| Izin di beranda anggota                   | Terbukti (tangkapan layar)                     |
+| Tombol Koreksi per baris                  | Terbukti (tangkapan layar)                     |
+| Beranda anggota sama dengan Laporan       | Konfirmasi pemilik                             |
+| Scheduler `5 0 * * *`, Asia/Jakarta       | Terbukti (`schedule:list`)                     |
+| ParseError dashboard admin (`@if` inline) | Diperbaiki; dashboard tampil (tangkapan layar) |
+| Tema Karaksa tahap 1                      | Tampil (tangkapan layar)                       |
+| Libur                                     | Dibuat, belum terbukti                         |
+| Burger HP dan menu horizontal laptop      | Dibuat, belum terbukti                         |
+| Kolom Libur di Laporan/PDF/Excel          | Belum dibuat                                   |
+
+### Git
+
+- Sebelum sesi 9: `origin/main` = `d94e6d6`. Perubahan sesi 9 di-commit atas persetujuan pemilik; push belum disetujui. Verifikasi dengan `git log --oneline -3`.
+
+### Pending
+
+- Konfirmasi Libur, burger, dan `npm run build`.
+- Kolom Libur di Laporan/PDF/Excel.
+- Tema tahap 2 (Login) sampai 6 (PDF kop logo), font lokal.
+- Cek nilai cadangan radius `GeofenceService` (belum dilihat).
+- Hosting (cron `schedule:run` tiap menit, production, HTTPS, backup, uji 18 akun); pertimbangkan repo private.

@@ -46,6 +46,7 @@ class AttendanceCorrectionController extends Controller
                 Attendance::STATUS_HADIR,
                 Attendance::STATUS_TIDAK_HADIR,
                 Attendance::STATUS_IZIN,
+                Attendance::STATUS_LIBUR,
             ])],
             'reason' => ['required', 'string', 'min:5', 'max:255'],
         ], [
@@ -64,8 +65,10 @@ class AttendanceCorrectionController extends Controller
         $newStatus = $data['status'];
         $reason = trim($data['reason']);
 
-        // Hadir dan Tidak Hadir tidak boleh untuk tanggal ke depan. Izin boleh.
-        if ($newStatus !== Attendance::STATUS_IZIN && $date > $today) {
+        $futureAllowed = [Attendance::STATUS_IZIN, Attendance::STATUS_LIBUR];
+
+        // Hadir dan Tidak Hadir tidak boleh untuk tanggal ke depan. Izin dan Libur boleh.
+        if (! in_array($newStatus, $futureAllowed, true) && $date > $today) {
             return back()->withInput()->withErrors([
                 'date' => 'Tanggal tidak boleh melewati hari ini.',
             ]);
@@ -83,10 +86,11 @@ class AttendanceCorrectionController extends Controller
             Attendance::STATUS_HADIR => 'Hadir',
             Attendance::STATUS_TIDAK_HADIR => 'Tidak Hadir',
             Attendance::STATUS_IZIN => 'Izin',
+            Attendance::STATUS_LIBUR => 'Libur',
         ];
 
         try {
-            DB::transaction(function () use ($request, $schedule, $member, $date, $newStatus, $reason, $labels) {
+            DB::transaction(function () use ($request, $schedule, $member, $date, $newStatus, $reason, $labels, $futureAllowed) {
                 $row = Attendance::query()
                     ->where('user_id', $member->id)
                     ->whereDate('attendance_date', $date)
@@ -99,15 +103,12 @@ class AttendanceCorrectionController extends Controller
                     throw new DomainException('Anggota ini belum punya kategori jadwal.');
                 }
 
-                if (
-                    in_array($newStatus, [Attendance::STATUS_TIDAK_HADIR, Attendance::STATUS_IZIN], true)
-                    && ! $schedule->isRequiredDay($category, $date)
-                ) {
+                if ($newStatus !== Attendance::STATUS_HADIR && ! $schedule->isRequiredDay($category, $date)) {
                     throw new DomainException('Tanggal itu bukan hari wajib bagi anggota ini, jadi tidak bisa ditetapkan ' . $labels[$newStatus] . '.');
                 }
 
                 if ($row) {
-                    if ($row->status === $newStatus && $newStatus !== Attendance::STATUS_IZIN) {
+                    if ($row->status === $newStatus && ! in_array($newStatus, $futureAllowed, true)) {
                         throw new DomainException('Status anggota pada tanggal itu sudah ' . $labels[$newStatus] . '. Tidak ada yang diubah.');
                     }
 
