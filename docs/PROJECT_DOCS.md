@@ -1,1364 +1,238 @@
-# PROJECT MASTER DOCUMENT
+# PROJECT DOCS — KKN MANAGEMENT SYSTEM
 
-## KKN MANAGEMENT SYSTEM
+Modul aktif: Sistem Absensi Digital KKN Kelompok 30 UNTARA.
 
-Terakhir diperbarui: 2026-11-06
+Terakhir diperbarui: 2026-11-07 (akhir sesi 7).
 
-## 1. Identitas Proyek
+> **Aturan baca.** Dokumen ini adalah snapshot. Kondisi repository, kode aktual, hasil terminal, dan hasil pengujian terbaru adalah sumber kebenaran. Jika bagian ini bertentangan dengan kode, ikuti kode lalu perbarui dokumen.
+>
+> **Repository PUBLIC.** Dilarang menulis password, token QR, isi `.env`, koordinat posko, alamat tunnel, nama database proyek lain, dan data pribadi anggota (nama lengkap, username, NIM, nomor HP).
+>
+> Isi lama dokumen ini (analisis Phase 1, desain Phase 2, rincian Phase 0, dan dokumentasi database bawaan Laravel) sudah dihapus karena bertentangan dengan implementasi aktual. Riwayat lengkapnya masih ada di riwayat Git.
 
-- Nama aplikasi: KKN MANAGEMENT SYSTEM
-- Modul pertama: Sistem Absensi Digital KKN Kelompok 30 UNTARA
-- Developer dan administrator utama: Muhamad Rahel Alvizahri
-- Lokasi kegiatan: Kelurahan Kadu Agung, Kecamatan Tigaraksa, Kabupaten Tangerang, Provinsi Banten
-- Jumlah anggota: 18 orang
+---
 
-## 2. Tujuan
+## 1. Identitas proyek
 
-Membangun sistem informasi berbasis web untuk membantu pengelolaan kegiatan KKN secara terpusat, terstruktur, transparan, dan mudah digunakan. Dapat diakses melalui laptop, Android, dan iOS (browser), dengan desain responsif yang mengutamakan smartphone.
+- Nama aplikasi: KKN MANAGEMENT SYSTEM.
+- Modul aktif: Sistem Absensi Digital KKN Kelompok 30 UNTARA.
+- Pemilik, developer, dan admin utama: pemilik proyek (masih belajar Laravel).
+- Pengguna: 18 anggota KKN dan 1 admin.
+- Folder proyek: `C:\laragon\www\kkn-management-system`.
+- Database proyek: `kkn_management_system`. Server MySQL lokal dipakai bersama proyek lain, jangan menyentuh database lain.
+- Repository: `https://github.com/elrafdinata/kkn-management-system` (PUBLIC), branch `main`.
+- KARAKSA WASTE adalah aplikasi terpisah dan tidak dicampur dengan proyek ini.
 
-## 3. Ruang Lingkup
+## 2. Teknologi (terakhir terverifikasi)
 
-- Tahap pertama: Modul 1 Sistem Absensi Digital.
-- Modul lain (administrasi, data anggota, monitoring program kerja, dokumentasi, dashboard, chatbot) direncanakan setelah modul absensi stabil.
-- KARAKSA WASTE adalah aplikasi terpisah dan tidak dicampur ke modul absensi.
+| Komponen       | Versi                                                                             |
+| -------------- | --------------------------------------------------------------------------------- |
+| Sistem operasi | Windows, Laragon, VS Code                                                         |
+| Laravel        | 13.40.0                                                                           |
+| PHP            | 8.5.8                                                                             |
+| MySQL          | 8.0.30                                                                            |
+| Composer       | 2.10.3                                                                            |
+| Node.js / NPM  | 22.23.1 / 10.9.8                                                                  |
+| Frontend       | Blade + Bootstrap 5 lewat Vite (`resources/scss/app.scss`, `resources/js/app.js`) |
 
-## 4. Teknologi (versi diperiksa lewat perintah terminal pada 2026-11-06)
+Terminal yang dipakai pemilik adalah CMD (Cmder), bukan PowerShell. Gunakan perintah CMD (`type`, `dir`, `copy`), bukan `Get-ChildItem` atau `Copy-Item`.
 
-| Komponen          | Versi                                    |
-| ----------------- | ---------------------------------------- |
-| Sistem operasi    | Windows                                  |
-| Local development | Laragon                                  |
-| Editor            | Visual Studio Code                       |
-| Laravel           | 13.40.0                                  |
-| PHP               | 8.5.8                                    |
-| Composer          | 2.10.3                                   |
-| Node.js           | 22.23.1                                  |
-| NPM               | 10.9.8                                   |
-| Database          | MySQL 8.0.30                             |
-| Frontend          | Belum ditentukan (diputuskan di Phase 2) |
-
-- Folder proyek: C:\laragon\www\kkn-management-system
-- Database: kkn_management_system
-- Repository: https://github.com/elrafdinata/kkn-management-system
-- Branch: main
-- Commit terakhir saat audit: d5833e4 (Initial project setup)
-
-## 5. Aturan Bisnis (ditetapkan pemilik proyek)
+## 3. Aturan bisnis (jangan diubah tanpa diskusi dan persetujuan pemilik)
 
 **Role**
 
-- Administrator: login dari mana saja, tanpa batas geofence, akses penuh.
-- Anggota: login hanya dalam radius posko, hanya melihat data sendiri.
-- Pembatasan akses diterapkan di backend.
-
-**Geofencing**
-
-- Radius 30 meter dari titik posko, dihitung dengan Haversine di backend.
-- Divalidasi saat login, absensi, dan pemrosesan QR.
-- Koordinat posko disimpan di pengaturan database, bukan di kode.
-- Koordinat posko: BELUM DIBERIKAN.
-
-**Kategori jadwal**
-
-- Stay: wajib absensi Senin-Minggu.
-- Shift Malam: wajib absensi Senin-Minggu.
-- Weekend: wajib absensi Sabtu-Minggu.
-- Hari tidak wajib tidak dihitung Tidak Hadir.
-
-**Waktu**
-
-- Zona waktu Asia/Jakarta, absensi 00.00-23.59 WIB.
-- Satu absensi berhasil per anggota per hari.
-- Tidak ada status Terlambat dan tidak ada absensi pagi/sore.
-
-**Status absensi**: Hadir, Menunggu, Tidak Hadir (Tidak Hadir ditetapkan otomatis oleh Scheduler setelah hari berakhir).
-
-**QR Code**: token acak, ada masa berlaku, diverifikasi server, tidak bisa dipakai ulang. Durasi kedaluwarsa: BELUM DITENTUKAN.
-
-**Selfie**: wajib dari kamera langsung, disimpan di storage privat, anggota hanya melihat foto sendiri. Tidak ada face recognition.
-
-## 6. Keputusan yang Belum Ditentukan
-
-- Koordinat posko (dibutuhkan di Phase 5).
-- Durasi kedaluwarsa QR Code (dibutuhkan di Phase 7).
-- Pilihan frontend (dibutuhkan di Phase 2).
-
-## 7. Catatan Keamanan
-
-Repository bersifat public. Dilarang mengunggah password, token, isi .env, koordinat posko sensitif, atau data pribadi anggota.
-
-## 8. Status Dokumen
-
-- Dokumen ini dibuat pada Phase 0.
-- Status Git per 2026-11-06: folder docs/ belum di-commit (Untracked).
-- Tinjauan dokumentasi: 7 dari 7 dokumen sudah ditinjau, koreksi sedang diterapkan.
-- Belum ada fitur absensi yang dibuat atau diuji.
-
-# DEVELOPMENT ROADMAP
-
-## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
-
-Terakhir diperbarui: 2026-11-06
-
-Tingkat status: Direncanakan, Dibuat, Dijalankan, Diuji, Berhasil, Siap digunakan.
-
-Aturan: kerjakan berurutan, jangan melewati tahap tanpa persetujuan dan pengujian.
-
-| Phase | Nama                             | Status                     | Catatan                                                                       |
-| ----- | -------------------------------- | -------------------------- | ----------------------------------------------------------------------------- |
-| 0     | Project Discovery                | Dijalankan (belum lengkap) | Audit berhasil. 7 dokumen dibuat, koreksi sedang diterapkan, belum di-commit. |
-| 1     | System Analysis                  | Direncanakan               | SRS, kebutuhan fungsional dan non-fungsional, aktor, hak akses, diagram       |
-| 2     | System Design                    | Direncanakan               | Arsitektur, ERD, schema, route, UI/UX, desain alur, pilihan frontend          |
-| 3     | Project Foundation               | Direncanakan               | Konfigurasi, timezone, layout, fondasi autentikasi dan role                   |
-| 4     | Authentication & User Management | Direncanakan               | Login, logout, kelola anggota, kategori jadwal                                |
-| 5     | Geofencing                       | Direncanakan               | Perlu koordinat posko dari pemilik proyek                                     |
-| 6     | Schedule Management              | Direncanakan               | Stay, Shift Malam, Weekend                                                    |
-| 7     | QR Attendance                    | Direncanakan               | Perlu keputusan durasi kedaluwarsa QR                                         |
-| 8     | Selfie Attendance                | Direncanakan               | Kamera, preview, penyimpanan privat                                           |
-| 9     | Attendance Status & Automation   | Direncanakan               | Hadir/Menunggu/Tidak Hadir, Scheduler, Cron                                   |
-| 10    | Admin Dashboard                  | Direncanakan               | Statistik, anggota, riwayat, filter, pengaturan                               |
-| 11    | Member Dashboard                 | Direncanakan               | Status, absensi, jadwal, riwayat, statistik pribadi                           |
-| 12    | Reporting                        | Direncanakan               | Rekap dan ekspor Excel dan PDF                                                |
-| 13    | Security & Testing               | Direncanakan               | Pengujian fungsional, keamanan, akses, responsivitas                          |
-| 14    | Deployment                       | Direncanakan               | Hosting, HTTPS, storage, scheduler, backup, uji 18 akun                       |
-| 15    | Release & Documentation          | Direncanakan               | Panduan admin dan anggota, dokumentasi, evaluasi akhir                        |
-
-## Rincian Phase 0
-
-- [x] Proyek Laravel dibuat (terverifikasi audit)
-- [x] Koneksi database dan migration bawaan (terverifikasi audit)
-- [x] Git dan push awal, commit d5833e4 (terverifikasi audit)
-- [x] Audit versi teknologi dan kondisi repository
-- [x] Versi MySQL 8.0.30 terverifikasi (2026-11-06)
-- [x] PROJECT_MASTER_DOCUMENT.md (dibuat, belum di-commit)
-- [x] DEVELOPMENT_ROADMAP.md (dibuat, belum di-commit)
-- [x] PROJECT_PROGRESS.md (dibuat, belum di-commit)
-- [x] DATABASE_DOCUMENTATION.md (dibuat, belum di-commit)
-- [x] SYSTEM_ARCHITECTURE.md (dibuat, belum di-commit)
-- [x] CHANGELOG.md (dibuat, belum di-commit)
-- [x] NEXT_SESSION_PROMPT.md (dibuat, belum di-commit)
-- [x] Tinjauan 7 dokumen selesai (2026-11-06)
-- [ ] Koreksi dokumen diterapkan (sedang berjalan)
-- [ ] Persetujuan pemilik proyek untuk commit dokumentasi
-
-Kriteria Phase 0 selesai: semua koreksi diterapkan, pemilik proyek menyetujui, commit dan push berhasil, dan git status bersih.
-
-Status Git per 2026-11-06: folder docs/ belum di-commit (Untracked).
-
-## Keputusan yang masih terbuka
-
-- Koordinat posko (dibutuhkan di Phase 5)
-- Durasi kedaluwarsa QR Code (dibutuhkan di Phase 7)
-- Pilihan frontend (dibutuhkan di Phase 2)
-
-# DATABASE DOCUMENTATION
-
-## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
-
-Terakhir diperbarui: 2026-11-06
-Status Git dokumen ini: Untracked (belum di-commit).
-
-## Status Verifikasi
-
-- Terverifikasi lewat `php artisan db:table`: tabel `sessions` (InnoDB, utf8mb4_unicode_ci).
-- Terverifikasi lewat `php artisan migrate:status` pada 2026-11-06: 3 migration bawaan berstatus Ran.
-- Tabel lain: struktur dicatat dari hasil query `information_schema` sebelumnya dan belum diperiksa ulang satu per satu.
-- Foreign key: belum diverifikasi.
-
-## Informasi Umum
-
-- Database: kkn_management_system
-- DBMS: MySQL 8.0.30
-- Server MySQL lokal dipakai bersama proyek lain. Jangan mengubah database selain kkn_management_system.
-- Perintah destruktif (migrate:fresh, db:wipe, hapus tabel) dilarang tanpa persetujuan pemilik proyek.
-
-## Migration yang Sudah Dijalankan (Batch 1)
-
-| Migration                            | Status |
-| ------------------------------------ | ------ |
-| 0001_01_01_000000_create_users_table | Ran    |
-| 0001_01_01_000001_create_cache_table | Ran    |
-| 0001_01_01_000002_create_jobs_table  | Ran    |
-
-## Daftar Tabel (9 tabel bawaan Laravel)
-
-Database kkn_management_system berisi 9 tabel. Angka 76 pada `db:show` adalah jumlah seluruh tabel di server MySQL lokal, bukan tabel proyek ini.
-
-Belum ada tabel buatan sendiri untuk modul absensi.
-
-### users
-
-| Kolom             | Tipe            | Null | Key     |
-| ----------------- | --------------- | ---- | ------- |
-| id                | bigint unsigned | NO   | PRIMARY |
-| name              | varchar(255)    | NO   |         |
-| email             | varchar(255)    | NO   | UNIQUE  |
-| email_verified_at | timestamp       | YES  |         |
-| password          | varchar(255)    | NO   |         |
-| remember_token    | varchar(100)    | YES  |         |
-| created_at        | timestamp       | YES  |         |
-| updated_at        | timestamp       | YES  |         |
-
-Catatan: struktur masih bawaan Laravel. Belum ada kolom role, kategori jadwal, atau status aktif.
-
-### password_reset_tokens
-
-| Kolom      | Tipe         | Null | Key     |
-| ---------- | ------------ | ---- | ------- |
-| email      | varchar(255) | NO   | PRIMARY |
-| token      | varchar(255) | NO   |         |
-| created_at | timestamp    | YES  |         |
-
-### sessions
-
-Terverifikasi lewat `db:table`: engine InnoDB, collation utf8mb4_unicode_ci.
-
-| Kolom         | Tipe            | Null | Key     |
-| ------------- | --------------- | ---- | ------- |
-| id            | varchar(255)    | NO   | PRIMARY |
-| user_id       | bigint unsigned | YES  | INDEX   |
-| ip_address    | varchar(45)     | YES  |         |
-| user_agent    | text            | YES  |         |
-| payload       | longtext        | NO   |         |
-| last_activity | int             | NO   | INDEX   |
-
-### cache
-
-| Kolom      | Tipe         | Null | Key     |
-| ---------- | ------------ | ---- | ------- |
-| key        | varchar(255) | NO   | PRIMARY |
-| value      | mediumtext   | NO   |         |
-| expiration | bigint       | NO   | INDEX   |
-
-### cache_locks
-
-| Kolom      | Tipe         | Null | Key     |
-| ---------- | ------------ | ---- | ------- |
-| key        | varchar(255) | NO   | PRIMARY |
-| owner      | varchar(255) | NO   |         |
-| expiration | bigint       | NO   | INDEX   |
-
-### jobs
-
-| Kolom        | Tipe              | Null | Key     |
-| ------------ | ----------------- | ---- | ------- |
-| id           | bigint unsigned   | NO   | PRIMARY |
-| queue        | varchar(255)      | NO   | INDEX   |
-| payload      | longtext          | NO   |         |
-| attempts     | smallint unsigned | NO   |         |
-| reserved_at  | int unsigned      | YES  |         |
-| available_at | int unsigned      | NO   |         |
-| created_at   | int unsigned      | NO   |         |
-
-### job_batches
-
-| Kolom          | Tipe         | Null | Key     |
-| -------------- | ------------ | ---- | ------- |
-| id             | varchar(255) | NO   | PRIMARY |
-| name           | varchar(255) | NO   |         |
-| total_jobs     | int          | NO   |         |
-| pending_jobs   | int          | NO   |         |
-| failed_jobs    | int          | NO   |         |
-| failed_job_ids | longtext     | NO   |         |
-| options        | mediumtext   | YES  |         |
-| cancelled_at   | int          | YES  |         |
-| created_at     | int          | NO   |         |
-| finished_at    | int          | YES  |         |
-
-### failed_jobs
-
-| Kolom      | Tipe            | Null | Key                                       |
-| ---------- | --------------- | ---- | ----------------------------------------- |
-| id         | bigint unsigned | NO   | PRIMARY                                   |
-| uuid       | varchar(255)    | NO   | UNIQUE                                    |
-| connection | varchar(255)    | NO   | INDEX gabungan                            |
-| queue      | varchar(255)    | NO   | INDEX gabungan                            |
-| payload    | longtext        | NO   |                                           |
-| exception  | longtext        | NO   |                                           |
-| failed_at  | timestamp       | NO   | INDEX gabungan, default CURRENT_TIMESTAMP |
-
-### migrations
-
-| Kolom     | Tipe         | Null | Key     |
-| --------- | ------------ | ---- | ------- |
-| id        | int unsigned | NO   | PRIMARY |
-| migration | varchar(255) | NO   |         |
-| batch     | int          | NO   |         |
-
-## Index dan Unique Constraint
-
-Dicatat dari hasil query `information_schema` sebelumnya. Belum diperiksa ulang satu per satu.
-
-| Tabel         | Index                                        | Jenis       | Kolom                        |
-| ------------- | -------------------------------------------- | ----------- | ---------------------------- |
-| cache         | cache_expiration_index                       | Index       | expiration                   |
-| cache_locks   | cache_locks_expiration_index                 | Index       | expiration                   |
-| failed_jobs   | failed_jobs_uuid_unique                      | Unique      | uuid                         |
-| failed_jobs   | failed_jobs_connection_queue_failed_at_index | Index       | connection, queue, failed_at |
-| jobs          | jobs_queue_index                             | Index       | queue                        |
-| sessions      | sessions_last_activity_index                 | Index       | last_activity                |
-| sessions      | sessions_user_id_index                       | Index       | user_id                      |
-| users         | users_email_unique                           | Unique      | email                        |
-| (semua tabel) | PRIMARY                                      | Primary key | lihat tabel masing-masing    |
-
-## Relasi / Foreign Key
-
-Belum diverifikasi. Query yang dijalankan hanya membaca indeks, bukan foreign key. Akan diperiksa pada tahap berikutnya jika diperlukan.
-
-## Rencana Perubahan Database (Direncanakan, belum dibuat)
-
-Tabel untuk modul absensi akan dirancang pada Phase 2 (System Design), termasuk unique constraint satu anggota satu tanggal, sesuai aturan bisnis. Belum ada perubahan database buatan sendiri.
-
-## Riwayat Perubahan Database
-
-| Tanggal       | Perubahan                             | Status                                |
-| ------------- | ------------------------------------- | ------------------------------------- |
-| (awal proyek) | 3 migration bawaan Laravel dijalankan | Berhasil, status Ran dicek 2026-11-06 |
-
-# SYSTEM ARCHITECTURE
-
-## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
-
-Terakhir diperbarui: 2026-11-06
-Status Git dokumen ini: Untracked (belum di-commit).
-
-## Status Verifikasi
-
-- Terverifikasi pada 2026-11-06: isi `composer.json` (dibaca langsung) dan versi Laravel 13.40.0 (`php artisan --version`).
-- Struktur folder dan route dicatat dari pemeriksaan sebelumnya dan belum diperiksa ulang pada sesi ini.
-- Isi `package.json` belum dibaca ulang.
-
-## 1. Gambaran Umum
-
-- Pendekatan: Laravel MVC, satu aplikasi untuk Administrator dan Anggota.
-- Prinsip: modular, sederhana untuk tahap awal, dapat ditambah modul baru tanpa membangun ulang.
-- Status: baru struktur bawaan Laravel. Belum ada kode buatan sendiri.
-
-## 2. Teknologi
-
-Terverifikasi dari `composer.json`:
-
-- PHP minimal ^8.3 (terpasang 8.5.8)
-- laravel/framework ^13.17 (terpasang 13.40.0)
-- laravel/tinker ^3.0
-- Dev: fakerphp/faker ^1.23, laravel/pail ^1.2.5, laravel/pao ^1.0.6, laravel/pint ^1.27, mockery/mockery ^1.6, nunomaduro/collision ^8.6, phpunit/phpunit ^12.5.12
-- Package Composer tambahan: belum ada. Package QR dan ekspor Excel/PDF belum dipasang.
-
-Frontend:
-
-- Pilihan frontend: belum ditentukan (diputuskan di Phase 2).
-- Build tool: file `vite.config.js` dan `package.json` ada di proyek. Isinya belum diperiksa ulang.
-
-## 3. Struktur Folder (dicatat dari pemeriksaan sebelumnya)
-
-```
-kkn-management-system/
-  app/
-    Http/Controllers/Controller.php
-    Models/User.php
-    Providers/AppServiceProvider.php
-  bootstrap/        (app.php, providers.php, cache/)
-  config/           (app, auth, cache, database, filesystems, logging, mail, queue, services, session)
-  database/
-    factories/UserFactory.php
-    migrations/     (3 migration bawaan)
-    seeders/DatabaseSeeder.php
-  docs/             (dokumentasi proyek)
-  public/
-  resources/
-    css/app.css
-    js/app.js
-    views/welcome.blade.php
-  routes/           (web.php, console.php)
-  storage/
-  tests/
-  vendor/
-  .env              (rahasia, tidak masuk Git)
-  .env.example
-  composer.json, package.json, vite.config.js, phpunit.xml
-  AGENTS.md, CLAUDE.md, README.md
-```
-
-## 4. Komponen Aktual
-
-| Komponen     | Kondisi                                      |
-| ------------ | -------------------------------------------- |
-| Controller   | Hanya Controller dasar bawaan                |
-| Model        | Hanya User (bawaan)                          |
-| Middleware   | Belum ada buatan sendiri                     |
-| Service      | Belum ada (folder app/Services belum dibuat) |
-| Form Request | Belum ada                                    |
-| View         | Hanya welcome.blade.php                      |
-| Seeder       | Hanya DatabaseSeeder bawaan                  |
-
-## 5. Route Aktual (dicatat dari pemeriksaan sebelumnya)
-
-| Method  | URI            | Keterangan                                |
-| ------- | -------------- | ----------------------------------------- |
-| GET     | /              | Menampilkan view welcome (routes/web.php) |
-| GET/PUT | storage/{path} | Bawaan Laravel                            |
-| GET     | up             | Health check bawaan Laravel               |
-
-Belum ada route login, dashboard, absensi, atau admin.
-Detail method route akan diverifikasi ulang dengan `php artisan route:list`.
-
-## 6. Alur Proses
-
-Belum ada alur proses buatan sendiri. Alur autentikasi, geofencing, QR, dan selfie akan dirancang di Phase 2.
-
-## 7. Rencana Arsitektur (Direncanakan, belum dibuat)
-
-Prinsip yang akan dipakai, dirinci di Phase 2:
-
-- Controller tipis, logika bisnis dipisah ke Service bila diperlukan.
-- Form Request untuk validasi.
-- Middleware role untuk membatasi akses Administrator dan Anggota di backend.
-- Database transaction untuk proses absensi.
-- Pengaturan posko dan radius disimpan di database, bukan di kode.
-- Foto selfie di storage privat, diakses lewat route yang memeriksa hak akses.
-- Laravel Scheduler untuk penutupan hari (status Tidak Hadir).
-- Struktur dibuat agar modul berikutnya dapat ditambahkan.
-
-## 8. Catatan
-
-- .env berisi credential dan tidak boleh masuk repository.
-- KARAKSA WASTE adalah aplikasi terpisah dan tidak termasuk arsitektur ini.
-
-# PROJECT PROGRESS
-
-## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
-
-Terakhir diperbarui: 2026-11-06
-
-## Posisi Saat Ini
-
-- Phase aktif: Phase 0 - Project Discovery (belum lengkap)
-- Branch: main
-- Commit terakhir: d5833e4 (Initial project setup)
-- Status Git: folder docs/ belum di-commit (Untracked)
-- Dokumentasi digabung menjadi satu file: docs/PROJECT_DOCS.md (keputusan pemilik proyek)
-
-## Pekerjaan Selesai
-
-- Proyek Laravel 13.40.0 dibuat dan terpasang di `C:\laragon\www\kkn-management-system`.
-- MySQL 8.0.30 terverifikasi.
-- Koneksi database kkn_management_system berhasil.
-- 3 migration bawaan Laravel dijalankan (status Ran, dicek ulang 2026-11-06).
-- Git diinisialisasi, commit awal dibuat, push ke GitHub berhasil.
-- Audit kondisi proyek 2026-11-06 selesai.
-- Dokumentasi dibuat di folder docs/ (belum di-commit).
-- Ketujuh dokumen digabung menjadi docs/PROJECT_DOCS.md. File lama dihapus. Folder docs/ berisi 2 file: PROJECT_DOCS.md dan MASTER_PROMPT_v2.md.
-
-## Pekerjaan Sedang Dikerjakan
-
-- Tinjauan dan persetujuan dokumentasi oleh pemilik proyek.
-
-## Pekerjaan Belum Dikerjakan
-
-- Commit dan push dokumentasi (menunggu persetujuan pemilik proyek).
-- Phase 1 sampai Phase 15.
-- Belum ada fitur absensi, login buatan sendiri, role, dashboard, geofencing, QR, selfie, jadwal, status otomatis, atau laporan.
-
-## Error
-
-- Tidak ada error yang tercatat.
-
-## Hasil Pengujian
-
-Audit 2026-11-06 (perintah dijalankan di terminal):
-
-- Laravel 13.40.0 (`php artisan --version`): sesuai.
-- Git: branch main, commit d5833e4, sinkron dengan origin/main. Hanya docs/ yang Untracked.
-- Migration: 3 migration bawaan berstatus Ran.
-- Database: 9 tabel bawaan Laravel (angka 76 pada db:show adalah seluruh server MySQL lokal).
-- Route: 4 route bawaan (dicatat dari pemeriksaan sebelumnya).
-- Aplikasi belum dibuka di browser, sehingga belum terbukti berjalan.
-
-## Kriteria Phase 0 Selesai
-
-- Semua koreksi prioritas A dan B diterapkan.
-- Pemilik proyek menyetujui dokumentasi.
-- Commit dan push dokumentasi berhasil.
-- `git status` bersih.
-
-## Pending
-
-- Persetujuan pemilik proyek sebelum commit dan push dokumentasi.
-- MASTER_PROMPT_v2.md ikut di-commit ke repository PUBLIC (keputusan pemilik proyek). Isinya harus bebas secret dan nama database proyek lain sebelum commit.
-- Koreksi prioritas C (kelengkapan dokumen), ditunda.
-- Pilihan frontend (diputuskan di Phase 2).
-- Koordinat posko (dibutuhkan Phase 5).
-- Keputusan durasi kedaluwarsa QR (dibutuhkan Phase 7).
-- Pemeriksaan foreign key database.
-- Pemeriksaan opsional: buka aplikasi di browser untuk membuktikan aplikasi berjalan.
-- Repository public: pastikan tidak ada secret atau data pribadi yang ikut terunggah.
-
-## Langkah Selanjutnya
-
-1. Verifikasi PROJECT_DOCS.md.
-2. Pastikan MASTER_PROMPT_v2.md bebas secret dan nama database proyek lain.
-3. Jelaskan dampak commit dan push, lalu minta persetujuan pemilik proyek.
-4. Commit dan push, pastikan `git status` bersih.
-5. Perbarui status Git di dokumen, nyatakan Phase 0 selesai, lalu mulai Phase 1 - System Analysis.
-
-# CHANGELOG
-
-## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
-
-Format: entri terbaru di atas. Setiap entri mencatat fitur, kode, bug, database, package, dan pengujian.
-
-## [Belum dirilis] - 2026-11-06
-
-### Dokumentasi (Dibuat, belum di-commit)
-
-- Folder docs/ dibuat. Status Git: Untracked.
-- Dokumen dikoreksi dan digabung menjadi satu file: PROJECT_DOCS.md.
-- Cakupan koreksi: prioritas A dan B. Prioritas C ditunda.
-
-### Pengujian
-
-- Audit proyek 2026-11-06: versi Laravel, status Git, dan migration diperiksa ulang. Hasil sesuai checkpoint. Berhasil.
-
-### Kode
-
-- Tidak ada perubahan kode.
-
-### Database
-
-- Tidak ada perubahan database.
-
-### Package
-
-- Tidak ada package baru.
-
-### Perbaikan bug
-
-- Tidak ada.
-
-## [Phase 0 awal] - Initial project setup (commit d5833e4)
-
-- Proyek Laravel 13.40.0 dibuat.
-- Koneksi ke database kkn_management_system berhasil.
-- 3 migration bawaan Laravel dijalankan (users, cache, jobs).
-- Git diinisialisasi dan dipush ke https://github.com/elrafdinata/kkn-management-system (branch main).
-- Catatan: tanggal pengerjaan tidak dicatat karena tidak terverifikasi.
-
-# NEXT SESSION PROMPT
-
-## KKN MANAGEMENT SYSTEM - Sistem Absensi Digital KKN Kelompok 30 UNTARA
-
-Terakhir diperbarui: 2026-11-06
-Status: Dibuat (belum di-commit).
-
-## 0. Instruksi untuk AI Sesi Berikutnya
-
-Anda melanjutkan proyek yang sudah ada. JANGAN membuat proyek Laravel baru. JANGAN langsung membuat fitur. Repository dan kode aktual adalah sumber kebenaran utama. Dokumen ini bisa tertinggal dari kondisi sebenarnya.
-
-Wajib dilakukan berurutan:
-
-1. Baca docs/PROJECT_DOCS.md (semua bagian, termasuk file ini).
-2. Minta pemilik proyek menjalankan pemeriksaan Git dan versi (bagian 14).
-3. Periksa database dan file yang berkaitan.
-4. Bandingkan dokumentasi dengan kondisi aktual. Jika berbeda, gunakan kondisi aktual dan perbarui dokumentasi.
-5. Konfirmasi posisi pengembangan kepada pemilik proyek.
-6. Lanjutkan dari pekerjaan terakhir yang belum selesai. Jangan mengulang pekerjaan yang sudah selesai dan diuji.
-
-Jangan mengaku sudah memperbarui file jika hanya menuliskan isinya di percakapan.
-
-## 1. Identitas Proyek
-
-- Nama: KKN MANAGEMENT SYSTEM
-- Modul pertama: Sistem Absensi Digital KKN Kelompok 30 UNTARA
-- Developer dan administrator utama: Muhamad Rahel Alvizahri (masih belajar Laravel)
-- Lokasi KKN: Kelurahan Kadu Agung, Kecamatan Tigaraksa, Kabupaten Tangerang, Banten
-- Jumlah anggota: 18 orang
-
-## 2. Tujuan Sistem
-
-Aplikasi web terpusat untuk pengelolaan KKN, dapat diakses dari laptop, Android, dan iOS (browser), responsif dan mengutamakan smartphone. Dikembangkan modular. Tahap pertama hanya modul absensi. KARAKSA WASTE adalah aplikasi terpisah dan tidak dicampur.
-
-## 3. Aturan Pendampingan
-
-- Bahasa Indonesia sederhana, bertahap, satu tahapan kecil per jawaban.
-- Tunggu hasil pengujian dan konfirmasi pemilik proyek sebelum lanjut.
-- Berikan lokasi file lengkap, perintah terminal siap salin, kode lengkap, cara uji, hasil yang diharapkan.
-- Jangan berasumsi, jangan menebak isi file, baca file sebelum mengubah, jangan menimpa file tanpa membaca.
-- Jika error: hentikan, minta pesan error lengkap, beri satu solusi paling sesuai.
-- Jika pemilik hanya menempel perintah tanpa hasil, katakan belum terbukti dan minta ulang.
-
-## 4. Teknologi dan Versi (terverifikasi 2026-11-06)
-
-| Komponen          | Versi                                    |
-| ----------------- | ---------------------------------------- |
-| Sistem operasi    | Windows                                  |
-| Local development | Laragon                                  |
-| Editor            | Visual Studio Code                       |
-| Laravel           | 13.40.0                                  |
-| PHP               | 8.5.8                                    |
-| Composer          | 2.10.3                                   |
-| Node.js           | 22.23.1                                  |
-| NPM               | 10.9.8                                   |
-| MySQL             | 8.0.30                                   |
-| Frontend          | Belum ditentukan (diputuskan di Phase 2) |
-
-Jangan mengubah versi teknologi hanya karena ada versi lebih baru. Periksa kompatibilitas sebelum memasang package.
-
-## 5. Lokasi, Database, Repository
-
-- Folder: C:\laragon\www\kkn-management-system
-- Database: kkn_management_system
-- Repository: https://github.com/elrafdinata/kkn-management-system (PUBLIC)
-- Branch: main
-- Commit terakhir: d5833e4 (Initial project setup)
-- Folder docs/ BELUM di-commit (Untracked) saat dokumen ini dibuat.
-
-## 6. Aturan Penting Database dan Git
-
-- Server MySQL lokal dipakai bersama proyek lain. Jangan menyentuh database atau folder proyek lain.
-- Dilarang tanpa persetujuan pemilik proyek: migrate:fresh, db:wipe, hapus tabel, hapus migration, commit, push, ganti branch, reset, force push, hapus file penting.
-- Repository public: jangan unggah credential, token, password, isi .env, koordinat posko sensitif, atau data pribadi anggota. Jangan menampilkan isi .env.
-
-## 7. Phase Terakhir dan Progres
-
-Phase aktif: Phase 0 - Project Discovery (belum lengkap).
-
-- Phase 0 Project Discovery: Dijalankan. Audit dan dokumentasi dibuat, menunggu persetujuan dan commit.
-- Phase 1 System Analysis: Direncanakan
-- Phase 2 System Design: Direncanakan
-- Phase 3 Project Foundation: Direncanakan
-- Phase 4 Authentication & User Management: Direncanakan
-- Phase 5 Geofencing: Direncanakan
-- Phase 6 Schedule Management: Direncanakan
-- Phase 7 QR Attendance: Direncanakan
-- Phase 8 Selfie Attendance: Direncanakan
-- Phase 9 Attendance Status & Automation: Direncanakan
-- Phase 10 Admin Dashboard: Direncanakan
-- Phase 11 Member Dashboard: Direncanakan
-- Phase 12 Reporting: Direncanakan
-- Phase 13 Security & Testing: Direncanakan
-- Phase 14 Deployment: Direncanakan
-- Phase 15 Release & Documentation: Direncanakan
-
-Pembedaan status: Direncanakan, Dibuat, Dijalankan, Diuji, Berhasil, Siap digunakan. Jangan menyatakan fitur selesai hanya karena kodenya ditulis.
-
-## 8. Aturan Bisnis (jangan diubah tanpa diskusi)
-
-**Role**
-
-- Administrator: login dari mana saja, bebas geofence, akses penuh (kelola anggota, kategori, posko, QR, riwayat, selfie, laporan, ekspor Excel/PDF, pengaturan).
-- Anggota: login hanya dalam radius posko; absen sesuai jadwal; hanya melihat data, selfie, riwayat, dan statistik miliknya sendiri.
-- Semua pembatasan wajib di backend, bukan hanya menyembunyikan tombol.
-
-**Geofencing**
-
-- Radius 30 meter dari posko, Haversine di backend.
-- Divalidasi saat login, absensi, dan proses QR.
-- GPS mati, izin ditolak: proses ditolak. Akurasi buruk: diminta ulang.
-- Koordinat posko disimpan di pengaturan database. JANGAN MENGARANG koordinat. Minta dari pemilik proyek saat Phase 5.
-- Jelaskan bahwa GPS spoofing masih mungkin, siapkan mitigasi yang wajar.
+- Administrator: login dari mana saja, bebas geofence, tidak wajib absen, akses penuh.
+- Anggota: login hanya di dalam radius posko, hanya melihat data miliknya sendiri.
+- Otorisasi ditegakkan di backend (middleware `role` dan `aktif`), bukan hanya menyembunyikan tombol.
+
+**Geofence dan lokasi**
+
+- Radius geofence: 50 meter, dihitung Haversine di backend, diperiksa saat login anggota dan saat kirim absensi.
+- Batas akurasi GPS: **500 meter**. Nilai ini diubah dari 300 menjadi 500 oleh admin pada 2026-11-06 (tercatat di Riwayat Aktivitas). Nilai aktual dibaca dari pengaturan posko di database, jadi cek lagi jika ragu.
+- Koordinat dan radius disimpan di database (tabel `settings`), bukan di kode. Jangan ditulis di dokumentasi.
+- GPS mati atau izin ditolak: proses ditolak.
+- GPS spoofing masih mungkin. Ini keterbatasan yang diketahui.
 
 **Kategori jadwal** (hanya menentukan hari wajib, bukan jam)
 
-- Stay: wajib Senin-Minggu.
-- Shift Malam: wajib Senin-Minggu.
-- Weekend: wajib Sabtu-Minggu.
-- Hari tidak wajib tidak dihitung Tidak Hadir. Admin dapat mengubah kategori anggota.
+- Stay: wajib Senin sampai Minggu.
+- Shift Malam: wajib Senin sampai Minggu.
+- Weekend: wajib Sabtu dan Minggu.
+- Hari tidak wajib tidak dihitung Tidak Hadir. Logika ada di `App\Services\ScheduleService`.
 
-**Waktu**
+**Waktu dan status**
 
-- Asia/Jakarta, absensi 00.00-23.59 WIB.
-- Satu absensi berhasil per anggota per hari, dengan unique constraint di database.
-- Tidak ada status Terlambat, tidak ada absensi pagi/sore.
+- Zona waktu `Asia/Jakarta`, absensi 00.00 sampai 23.59 WIB.
+- Satu baris absensi per anggota per tanggal (unique `user_id` + `attendance_date`).
+- Status tersimpan: `hadir` dan `tidak_hadir`.
+- `Menunggu` adalah status hitungan (hari wajib, belum ada baris), tidak disimpan di database.
+- Tidak ada status Terlambat.
+- Penetapan Tidak Hadir otomatis: command `absensi:tutup-hari`, dijadwalkan 00:05 setiap hari.
 
-**Status:** Hadir, Menunggu, Tidak Hadir. Tidak Hadir ditetapkan otomatis oleh Laravel Scheduler (dan Cron di server) setelah hari berakhir, bukan saat dashboard dibuka.
+**Alur absensi**
 
-**QR Code:** dibuat admin, token acak sulit ditebak, ada masa berlaku, diverifikasi server, tidak bisa dipakai ulang, terikat sesi absensi valid.
+1. Anggota membuka link absensi (dari QR atau grup).
+2. Login, geofence diperiksa.
+3. Dashboard anggota, tombol Absen Sekarang.
+4. Halaman absen membuka kamera depan, anggota mengambil selfie.
+5. Selfie dikirim bersama lokasi. Server memvalidasi lokasi, selfie, dan duplikasi.
+6. Jika valid, tersimpan sebagai Hadir.
 
-**Selfie:** wajib, kamera langsung (utamakan kamera depan), ada preview, bukan dari galeri, validasi tipe dan ukuran di backend, disimpan di storage privat, admin melihat semua, anggota hanya miliknya. Jangan mengklaim face recognition.
+QR hanya pintu masuk ke `/anggota/absen`. Token QR tidak diperiksa saat kirim absensi. Jangan menghidupkan kembali aturan QR wajib tanpa persetujuan pemilik.
 
-**Laporan:** harian, mingguan, bulanan, per anggota, per kategori, rentang tanggal; berisi nama, kategori, jumlah hari wajib, Hadir, Tidak Hadir, persentase; ekspor Excel dan PDF.
+**Selfie**
 
-**Keamanan wajib:** hashing password, CSRF, validasi backend, autentikasi, otorisasi, role middleware, rate limiting, validasi token QR, cegah absensi ganda, validasi file selfie, foto privat, transaction, activity log admin, HTTPS saat deployment, backup berkala.
+- Wajib dari kamera langsung, JPEG, maksimum 5 MB.
+- Disimpan di storage privat, diakses lewat route `selfie.show` yang memeriksa hak akses (admin melihat semua, anggota hanya miliknya).
+- Tidak ada face recognition.
 
-## 9. Struktur File Penting
+**Koreksi absensi admin** (sesuai kode `AttendanceCorrectionController`)
 
-Dicatat dari pemeriksaan sebelumnya. Lihat bagian Struktur Folder di SYSTEM_ARCHITECTURE.
+- Status yang bisa dipilih: Hadir atau Tidak Hadir.
+- Alasan wajib 5 sampai 255 karakter, dicatat di Riwayat Aktivitas (`koreksi_absensi`).
+- Hadir boleh sampai hari ini. Tidak Hadir hanya untuk hari yang sudah berakhir dan merupakan hari wajib anggota itu.
+- Status yang sama ditolak. Baris hasil koreksi tidak memiliki jam, lokasi, dan selfie.
+- Proses memakai transaction dan `lockForUpdate`.
 
-- app/Http/Controllers/Controller.php, app/Models/User.php, app/Providers/AppServiceProvider.php (semua bawaan)
-- routes/web.php, routes/console.php
-- resources/views/welcome.blade.php, resources/css/app.css, resources/js/app.js
-- database/migrations (3 migration bawaan)
-- .env (rahasia, tidak masuk Git, jangan ditampilkan)
+**Mode "Masuk sebagai anggota"** (permintaan pemilik, sesi 7)
 
-## 10. Perubahan Database
+- Hanya admin yang bisa memakainya, hanya ke anggota yang aktif.
+- Tujuannya hanya melihat tampilan, karena GPS laptop sering ditolak.
+- Mode ini melewati geofence login anggota. Ini disengaja dan hanya berlaku bagi admin yang sudah login.
+- Selama mode aktif, **kirim absensi dan ganti password diblokir** (middleware `bukan.impersonasi`).
+- Awal dan akhir sesi dicatat (`impersonasi_mulai`, `impersonasi_selesai`).
+- Banner kuning dan tombol "Kembali ke admin" tampil di layout. Tombol Keluar di navbar tetap logout penuh.
 
-Tidak ada perubahan buatan sendiri. Hanya 9 tabel bawaan Laravel. Tabel users masih struktur bawaan (belum ada role, kategori jadwal, status aktif). Detail: bagian DATABASE DOCUMENTATION.
+**Status Izin: belum dibuat.** Rancangan awal: ditetapkan admin lewat formulir koreksi, alasan disimpan di kolom baru (butuh migration), boleh untuk tanggal ke depan, ditolak di hari tidak wajib, dibedakan dari Tidak Hadir di tampilan. Migration hanya setelah pemilik menulis "setuju migration". Perhitungan Izin di laporan diputuskan di Phase 12.
 
-## 11. Package
+**Keputusan fitur**
 
-Hanya package bawaan Laravel. Daftar lengkap lihat `composer.json`. Package tambahan (QR, ekspor Excel/PDF, dan lainnya) belum dipasang dan harus dicek kompatibilitasnya terlebih dahulu.
+- Pemilik pernah memutuskan tidak memerlukan fitur ganti password dan pembatasan percobaan login. Namun di kode aktual keduanya ada: route `ganti-password` dan pembatasan login 5 percobaan per 60 detik (kunci username + IP) di `LoginController`. Jangan dihapus atau diubah sepihak, tanyakan pemilik jika perlu keputusan.
 
-## 12. Status Fitur
+## 4. Struktur kode aktual (terverifikasi dari isi file dan `route:list` pada sesi 7)
 
-- Selesai: proyek Laravel, koneksi database, migration bawaan, Git dan push awal, audit 2026-11-06.
-- Dibuat: dokumentasi di docs/ (belum di-commit).
-- Belum dikerjakan: seluruh fitur absensi.
+**Controller**
 
-## 13. Error, Pengujian, Keputusan
+- `Auth/LoginController`, `Auth/PasswordController`.
+- `Admin/DashboardController` (ringkasan hari ini), `Admin/MemberController`, `Admin/AttendanceController` (Data Absensi), `Admin/AttendanceCorrectionController`, `Admin/ImpersonationController`, `Admin/QrController`, `Admin/SettingController`, `Admin/ActivityLogController`.
+- `Anggota/DashboardController`, `Anggota/AbsenController`.
+- `SelfieController`.
 
-- Error yang sudah diperbaiki: tidak ada.
-- Error yang masih terbuka: tidak ada.
-- Hasil pengujian: audit 2026-11-06 berhasil. Tidak ada pengujian fitur karena fitur belum ada.
-- Keputusan belum ditentukan: koordinat posko (Phase 5), durasi kedaluwarsa QR (Phase 7), pilihan frontend (Phase 2).
-- Pending: foreign key belum diverifikasi (query baru membaca indeks).
+**Middleware**
 
-## 14. Langkah Pertama Sesi Berikutnya
+- `role` (EnsureRole), `aktif` (EnsureActive), `bukan.impersonasi` (BlockWhenImpersonating).
+- `trustProxies` untuk `127.0.0.1` (disiapkan untuk uji lewat tunnel HTTPS).
 
-Minta pemilik proyek menjalankan di C:\laragon\www\kkn-management-system:
+**Service dan model**
 
-```bash
+- Service: `ScheduleService`, `GeofenceService`.
+- Model: `User`, `Attendance` (konstanta `STATUS_HADIR`, `STATUS_TIDAK_HADIR`), `ActivityLog`.
+- Kolom `users` yang dipakai: `name`, `username`, `password`, `role`, `schedule_category`, `is_active`.
+- Kolom `attendances` yang terlihat di kode: `user_id`, `attendance_date`, `status`, `category_snapshot`, `attended_at`, `distance_m`, `accuracy_m`, `selfie_path`.
+- `activity_logs`: `user_id` (nullable), `action` (string), `description` (text), `ip_address`, `created_at`. Kolom `action` bertipe string, jadi kode aksi baru tidak butuh migration.
+- Struktur lengkap tabel `settings` dan `qr_sessions` belum dibaca ulang.
+
+**Route (27 route, dari `route:list`)**
+
+| Area                 | Route utama                                                                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Umum                 | `/`, `login`, `logout`, `ganti-password`, `kembali-ke-admin`, `selfie/{attendance}`                                                                                            |
+| Admin (`/admin`)     | dashboard, `anggota` (daftar, tambah, ubah, status, reset password, masuk-sebagai), `riwayat-aktivitas`, `pengaturan-posko`, `qr`, `absensi`, `absensi/koreksi` (GET dan POST) |
+| Anggota (`/anggota`) | dashboard, `absen`, `absen/lokasi` (POST, throttle 20 per menit)                                                                                                               |
+
+**Tampilan**
+
+- Layout `layouts/app.blade.php` memiliki navbar (menu berbeda untuk admin dan anggota), tombol Keluar, banner mode lihat tampilan, serta alert sukses dan error bersama. Halaman tidak perlu membuat alert sendiri.
+- Dashboard admin: kartu ringkasan (anggota aktif, wajib hadir hari ini, sudah hadir, menunggu), daftar yang belum absen, aksi cepat.
+- Dashboard anggota: status hari ini, tombol Absen Sekarang, statistik pribadi, riwayat 10 hari terakhir.
+
+## 5. Status fitur dan bukti
+
+Tingkat status: Direncanakan, Dibuat, Dijalankan, Diuji, Berhasil, Siap digunakan.
+
+| Fitur                                                                 | Status              | Bukti                                                                                                                 |
+| --------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Login dengan geofence, ditolak jika akurasi buruk atau di luar radius | Berhasil            | Riwayat Aktivitas mencatat `login_ditolak_lokasi` (`poor_accuracy`, `outside_radius`, `no_gps`)                       |
+| Absen dari HP (selfie + lokasi)                                       | Berhasil            | Riwayat Aktivitas mencatat `absen_berhasil` pada 2026-11-06                                                           |
+| Pengaturan posko dan perubahan batas akurasi                          | Berhasil            | Riwayat Aktivitas mencatat `ubah_pengaturan_posko`                                                                    |
+| Navbar dan layout baru (admin dan anggota)                            | Berhasil            | Tangkapan layar sesi 7                                                                                                |
+| Dashboard admin (ringkasan hari ini)                                  | Berhasil (tampilan) | Tangkapan layar. Penghitungan Hadir dan Tidak Hadir baru terlihat pada nilai 0                                        |
+| Dashboard anggota (status, statistik, riwayat)                        | Berhasil (tampilan) | Tangkapan layar lewat mode Masuk sebagai                                                                              |
+| Mode Masuk sebagai: mulai, kembali, pencatatan log                    | Berhasil            | Tangkapan layar dan Riwayat Aktivitas                                                                                 |
+| Blokir kirim absen dan ganti password saat mode aktif                 | Dibuat, belum diuji | Hanya kode                                                                                                            |
+| Formulir koreksi absensi tampil                                       | Berhasil            | Tangkapan layar                                                                                                       |
+| Kolom Aksi dan tombol Koreksi di Data Absensi                         | Dibuat              | Tombol atas terlihat. Tombol per baris belum terlihat karena tabel kosong, dan belum mengisi anggota/tanggal otomatis |
+| Penyimpanan koreksi absensi                                           | Dibuat, belum diuji | Hanya kode                                                                                                            |
+| `absensi:tutup-hari`                                                  | Dibuat              | Terdaftar di jadwal harian. Logika penetapan Tidak Hadir belum terbukti                                               |
+| Status Izin                                                           | Direncanakan        | Belum dibuat                                                                                                          |
+| Laporan dan ekspor Excel/PDF                                          | Direncanakan        | Belum dimulai                                                                                                         |
+| Hosting                                                               | Direncanakan        | Belum ada keputusan                                                                                                   |
+
+Pemilik proyek memutuskan melewati pengujian detail untuk mempercepat penyelesaian. Semua yang berstatus "Dibuat, belum diuji" harus dianggap belum terbukti.
+
+## 6. Roadmap
+
+| Phase      | Nama                                                                    | Status                                                              |
+| ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 0 sampai 7 | Discovery, analisis, desain, fondasi, autentikasi, geofence, jadwal, QR | Selesai dan di-commit                                               |
+| 8          | Selfie                                                                  | Dibuat dan terbukti dari absensi HP                                 |
+| 9          | Status dan otomasi                                                      | Penyimpanan Hadir terbukti. `tutup-hari` dan koreksi belum terbukti |
+| 10         | Dashboard admin                                                         | Sebagian: Data Absensi, ringkasan hari ini, koreksi                 |
+| 11         | Dashboard anggota                                                       | Sebagian: status, statistik, riwayat tampil                         |
+| 12         | Laporan dan ekspor                                                      | Belum dimulai                                                       |
+| 13         | Keamanan dan pengujian                                                  | Belum dilakukan secara menyeluruh                                   |
+| 14         | Deployment                                                              | Belum dimulai                                                       |
+| 15         | Rilis dan dokumentasi                                                   | Belum dimulai                                                       |
+
+## 7. Git
+
+- Commit terakhir yang terbukti ter-push: `4c7e88b` (pembaruan dokumentasi sesi 5).
+- Sesi 7: commit lokal `8ac8528` berisi navbar, dashboard admin dan anggota, koreksi absensi, dan mode Masuk sebagai. Commit ini belum di-push saat dokumen ini ditulis.
+- Pembaruan dokumen ini belum di-commit.
+- Git di Windows menampilkan peringatan CRLF ke LF. Itu normal dan tidak perlu tindakan.
+- Tidak ada migration baru pada sesi 6 dan 7.
+
+## 8. Catatan teknis dan masalah yang diketahui
+
+- Bug diperbaiki: Beranda anggota dulu menentukan Hadir dari `attended_at`, sehingga absensi hasil koreksi admin (tanpa jam) tampil sebagai Tidak Hadir. Sekarang memakai kolom `status`.
+- `AttendanceCorrectionController` memiliki satu baris `use ... DashboardController as AdminDashboardController;` yang tidak terpakai. Tidak berbahaya, sebaiknya dihapus.
+- Nilai cadangan radius di `GeofenceService` kemungkinan masih 30 (belum disamakan dengan 50). Verifikasi.
+- Pastikan blok alert sukses dan error di `admin/attendances/index.blade.php` tidak ganda dengan layout.
+- GPS laptop sering ditolak (`poor_accuracy`). Gunakan mode Masuk sebagai untuk melihat tampilan anggota di laptop. Akurasi GPS asli hanya bisa diuji dari smartphone.
+- Uji kamera dan GPS di HP butuh HTTPS. Cloudflare Quick Tunnel pernah dipakai untuk uji. Alamat tunnel bersifat sementara dan tidak boleh dicatat atau dipublikasikan.
+
+## 9. Keputusan terbuka dan pekerjaan berikutnya
+
+**Hosting.** Pemilik ingin hosting gratis selama sekitar satu bulan. Belum ada keputusan. Syarat dari kode: PHP 8.3 atau lebih baru, HTTPS, MySQL, cron tiap menit untuk `schedule:run`, akses SSH untuk composer dan migrate, penyimpanan selfie permanen yang tidak dibuka publik. Hasil pengecekan sebelumnya (belum diuji langsung, syarat bisa berubah): InfinityFree tanpa SSH dan cron sehingga Tidak Hadir otomatis tidak jalan, Vercel berfilesystem hanya-baca, VM gratis cloud besar memenuhi syarat tetapi perlu pemasangan manual.
+
+**Persiapan sebelum hosting:** `APP_DEBUG=false`, `APP_ENV=production`, HTTPS, scheduler untuk `absensi:tutup-hari`, storage selfie privat, backup database dan file, ganti password admin yang kuat, uji singkat login, absen, dan lihat hasil dengan akun anggota.
+
+**Urutan langkah yang disepakati (satu langkah kecil per giliran):**
+
+1. Cek `git status`, lalu push commit `8ac8528` dan pembaruan dokumen setelah persetujuan eksplisit pemilik.
+2. Isi otomatis anggota dan tanggal pada tombol Koreksi per baris (controller koreksi sudah menerima `?member=` dan `?date=`).
+3. Statistik dashboard admin lanjutan dan perapian UI/UX halaman lain (login, form anggota, pengaturan, QR).
+4. `php artisan absensi:tutup-hari --dry-run`. Jangan dijalankan tanpa `--dry-run` sebelum perilakunya dipastikan, karena akun pemilik adalah akun anggota sungguhan.
+5. Laporan dan ekspor sederhana (Phase 12).
+6. Persiapan dan uji hosting dengan 18 akun.
+7. Status Izin setelah hosting, supaya tidak menahan rilis.
+
+## 10. Cara kerja yang diminta pemilik
+
+- Bahasa Indonesia sederhana, satu langkah utama per giliran, jawaban singkat.
+- Awali jawaban dengan satu baris **YANG HARUS KAMU LAKUKAN SEKARANG: ...**.
+- Beri isi file lengkap untuk file yang diganti, bukan potongan per bagian. Backup dulu file yang akan ditimpa.
+- Jangan meminta isi `.env`, password, token, atau secret.
+- Commit dan push hanya dengan persetujuan jelas. `git restore`, `reset`, dan force push hanya setelah "setuju restore". Migration hanya setelah "setuju migration". `migrate:fresh`, `db:wipe`, dan hapus tabel dilarang tanpa persetujuan khusus.
+- Bedakan dengan jelas: Terbukti, Klaim pemilik, Dibuat, Dijalankan, Diuji, Berhasil, Direncanakan. Jangan menyatakan fitur selesai hanya karena kode, route, atau view sudah ditulis.
+
+## 11. Langkah pertama sesi berikutnya
+
+Jalankan dari `C:\laragon\www\kkn-management-system`:
+
+```
 git status
-git branch
-git log --oneline -5
-dir docs
-php artisan --version
-php artisan migrate:status
-php artisan route:list
+git log --oneline -3
 ```
 
-Lalu:
-
-1. Bandingkan hasilnya dengan dokumen ini.
-2. Jika docs/ masih Untracked, tanyakan apakah pemilik proyek sudah menyetujui isi dokumentasi, lalu bantu commit dan push dengan menjelaskan dampaknya lebih dulu.
-3. Setelah itu nyatakan Phase 0 selesai dan mulai Phase 1 - System Analysis. Jangan coding fitur sebelum analisis disetujui.
-
-# PHASE 1 - SYSTEM ANALYSIS (SRS)
-
-## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
-
-Terakhir diperbarui: 2026-11-06
-Status: Dibuat (draf analisis, menunggu persetujuan pemilik proyek). Belum ada kode.
-
-## 1. Tujuan dan Ruang Lingkup
-
-Menetapkan kebutuhan Modul 1 Sistem Absensi Digital KKN Kelompok 30 UNTARA sebelum desain dan coding. Semua isi diturunkan dari aturan bisnis yang disetujui pemilik proyek. Tidak ada aturan baru. KARAKSA WASTE adalah aplikasi terpisah dan tidak termasuk.
-
-## 2. Ringkasan Business Rules
-
-| Kode  | Aturan                                                                                                                         |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------ |
-| BR-01 | Dua role: Administrator dan Anggota. Otorisasi ditegakkan di backend.                                                          |
-| BR-02 | Administrator tidak melakukan absensi. Hanya 18 anggota KKN yang absen.                                                        |
-| BR-03 | Akun anggota hanya dibuat admin. Tidak ada pendaftaran mandiri. Total 19 akun (1 admin, 18 anggota).                           |
-| BR-04 | Anggota login hanya dalam radius 30 m dari posko (Haversine di backend). Admin bebas geofence.                                 |
-| BR-05 | GPS dan izin lokasi wajib. Jika tidak tersedia, proses ditolak. Akurasi buruk: diminta coba lagi.                              |
-| BR-06 | Koordinat posko disimpan di pengaturan database. Belum diberikan, tidak boleh dikarang.                                        |
-| BR-07 | Kategori Stay dan Shift Malam wajib Senin-Minggu. Weekend wajib Sabtu-Minggu. Kategori hanya menentukan hari wajib, bukan jam. |
-| BR-08 | Hari tidak wajib tidak dihitung Tidak Hadir.                                                                                   |
-| BR-09 | Zona waktu Asia/Jakarta. Absensi tersedia 00.00-23.59 WIB.                                                                     |
-| BR-10 | Satu absensi berhasil per anggota per tanggal (unique constraint).                                                             |
-| BR-11 | Status hanya Hadir, Menunggu, Tidak Hadir. Tidak ada Terlambat dan tidak ada absensi pagi/sore.                                |
-| BR-12 | Tidak Hadir ditetapkan otomatis oleh Laravel Scheduler setelah hari berakhir, bukan saat dashboard dibuka.                     |
-| BR-13 | QR dibuat admin, token acak, punya masa berlaku, terikat sesi valid, diverifikasi server, tidak bisa dipakai ulang.            |
-| BR-14 | Selfie wajib dari kamera langsung dengan preview, disimpan di storage privat. Tidak ada klaim face recognition.                |
-| BR-15 | Admin melihat semua data dan selfie. Anggota hanya miliknya.                                                                   |
-| BR-16 | Laporan mengecualikan hari tidak wajib. Ekspor Excel dan PDF.                                                                  |
-| BR-17 | NIM dan nomor HP tidak dipakai (aturan proyek).                                                                                |
-
-## 3. Aktor dan Hak Akses
-
-| Aktor              | Jumlah   | Keterangan                                           |
-| ------------------ | -------- | ---------------------------------------------------- |
-| Administrator      | 1 akun   | Mengelola sistem. Tidak absen. Login dari mana saja. |
-| Anggota            | 18 akun  | Satu-satunya yang absen. Login dalam radius posko.   |
-| Sistem (Scheduler) | otomatis | Menetapkan Tidak Hadir setelah hari berakhir.        |
-
-Catatan: jika Rahel juga anggota KKN, ia memakai dua akun terpisah (Administrator dan Anggota).
-
-| Fungsi                                                   | Administrator | Anggota                  |
-| -------------------------------------------------------- | ------------- | ------------------------ |
-| Login                                                    | Di mana saja  | Hanya dalam radius posko |
-| Kelola akun anggota, kategori, reset password            | Ya            | Tidak                    |
-| Ganti password sendiri                                   | Ya            | Ya                       |
-| Pengaturan posko, QR, sistem                             | Ya            | Tidak                    |
-| Absensi (QR dan selfie)                                  | Tidak         | Ya, di hari wajib        |
-| Lihat profil, jadwal, statistik, riwayat, selfie sendiri | Tidak berlaku | Ya                       |
-| Lihat data, lokasi, selfie semua anggota                 | Ya            | Tidak                    |
-| Laporan dan ekspor                                       | Ya            | Tidak                    |
-
-## 4. Functional Requirements
-
-| Kode  | Kebutuhan                                                                                  |
-| ----- | ------------------------------------------------------------------------------------------ |
-| FR-01 | Admin membuat akun anggota (nama, identitas login, password awal, kategori).               |
-| FR-02 | Tidak ada pendaftaran mandiri.                                                             |
-| FR-03 | Admin mengubah data akun dan kategori anggota.                                             |
-| FR-04 | Admin mereset password anggota.                                                            |
-| FR-05 | Admin dan anggota dapat mengganti password sendiri.                                        |
-| FR-06 | Pengguna dapat login dan logout.                                                           |
-| FR-07 | Halaman admin hanya untuk Administrator, halaman anggota hanya untuk Anggota (backend).    |
-| FR-08 | Anggota hanya dapat mengakses data miliknya.                                               |
-| FR-09 | Anggota hanya dapat login dalam radius 30 m dari posko (Haversine, backend).               |
-| FR-10 | Jarak divalidasi lagi saat absensi dan saat QR diproses.                                   |
-| FR-11 | GPS mati atau izin ditolak: proses ditolak.                                                |
-| FR-12 | Akurasi GPS buruk: anggota diminta mencoba lagi.                                           |
-| FR-13 | Administrator bebas geofence.                                                              |
-| FR-14 | Admin mengatur koordinat posko dan radius (disimpan di database).                          |
-| FR-15 | Tersedia tiga kategori: Stay, Shift Malam, Weekend.                                        |
-| FR-16 | Stay dan Shift Malam wajib Senin-Minggu. Weekend wajib Sabtu-Minggu.                       |
-| FR-17 | Kategori hanya menentukan hari wajib, bukan jam.                                           |
-| FR-18 | Hari tidak wajib tidak dihitung Tidak Hadir.                                               |
-| FR-19 | Admin membuat QR dengan token acak sulit ditebak.                                          |
-| FR-20 | QR punya masa berlaku dan terikat sesi absensi valid.                                      |
-| FR-21 | Server memverifikasi token, masa berlaku, dan lokasi anggota.                              |
-| FR-22 | QR tidak dapat dipakai ulang untuk absensi ganda.                                          |
-| FR-23 | Absensi mewajibkan selfie kamera langsung (kamera depan diutamakan) dengan preview.        |
-| FR-24 | Jika kamera atau izin tidak tersedia, absensi tidak dapat diselesaikan.                    |
-| FR-25 | Server memvalidasi tipe dan ukuran file selfie.                                            |
-| FR-26 | Selfie di storage privat. Admin melihat semua, anggota hanya miliknya.                     |
-| FR-27 | Anggota dapat absen pukul 00.00-23.59 WIB, hanya pada hari wajib.                          |
-| FR-28 | Satu absensi berhasil per anggota per tanggal (unique constraint).                         |
-| FR-29 | Status hanya Hadir, Menunggu, Tidak Hadir.                                                 |
-| FR-30 | Hari wajib yang masih berjalan dan belum hadir berstatus Menunggu.                         |
-| FR-31 | Scheduler menetapkan Tidak Hadir otomatis setelah hari wajib berakhir.                     |
-| FR-32 | Semua perhitungan tanggal memakai Asia/Jakarta.                                            |
-| FR-33 | Absensi menyimpan lokasi dan waktu.                                                        |
-| FR-34 | Dashboard admin: statistik ringkas kehadiran.                                              |
-| FR-35 | Dashboard admin: daftar anggota dan kategori.                                              |
-| FR-36 | Riwayat absensi dengan filter tanggal, nama, kategori, status.                             |
-| FR-37 | Detail absensi: lokasi, selfie, QR.                                                        |
-| FR-38 | Halaman pengaturan (posko, radius, sistem).                                                |
-| FR-39 | Dashboard anggota: profil dan kategori.                                                    |
-| FR-40 | Status hari ini dan informasi hari wajib.                                                  |
-| FR-41 | Tombol absensi.                                                                            |
-| FR-42 | Riwayat, selfie, dan statistik pribadi.                                                    |
-| FR-43 | Laporan harian, mingguan, bulanan, per anggota, per kategori, rentang tanggal.             |
-| FR-44 | Laporan memuat hari wajib, Hadir, Tidak Hadir, persentase (hari tidak wajib dikecualikan). |
-| FR-45 | Ekspor Excel dan PDF.                                                                      |
-| FR-46 | Aktivitas penting admin dicatat (activity log).                                            |
-
-## 5. Non-Functional Requirements
-
-| Kode   | Kebutuhan                                                                                               |
-| ------ | ------------------------------------------------------------------------------------------------------- |
-| NFR-01 | Password di-hash.                                                                                       |
-| NFR-02 | Semua form dilindungi CSRF.                                                                             |
-| NFR-03 | Semua input divalidasi di backend.                                                                      |
-| NFR-04 | Otorisasi di backend lewat middleware role.                                                             |
-| NFR-05 | Rate limiting pada login, absensi, dan pemrosesan QR.                                                   |
-| NFR-06 | Token QR acak dan diverifikasi server.                                                                  |
-| NFR-07 | Absensi ganda dicegah di database dan aplikasi.                                                         |
-| NFR-08 | Selfie divalidasi, disimpan privat, diakses lewat route yang memeriksa hak akses.                       |
-| NFR-09 | Proses absensi memakai database transaction.                                                            |
-| NFR-10 | Rahasia hanya di .env, tidak masuk Git.                                                                 |
-| NFR-11 | HTTPS wajib saat deployment.                                                                            |
-| NFR-12 | Activity log untuk tindakan admin.                                                                      |
-| NFR-13 | Tidak mengklaim face recognition. Keterbatasan GPS spoofing dijelaskan, mitigasi yang wajar diterapkan. |
-| NFR-14 | Responsif, mobile-first.                                                                                |
-| NFR-15 | Dapat dibuka di browser Android dan iOS tanpa instal aplikasi.                                          |
-| NFR-16 | Halaman absensi mudah dipakai satu tangan di smartphone.                                                |
-| NFR-17 | Pesan error berbahasa Indonesia yang jelas.                                                             |
-| NFR-18 | Pilihan frontend belum ditentukan (diputuskan di Phase 2).                                              |
-| NFR-19 | Melayani 19 akun. Skala kecil.                                                                          |
-| NFR-20 | (Usulan) Halaman terbuka dalam waktu wajar di koneksi seluler biasa. Angka belum ditetapkan.            |
-| NFR-21 | Riwayat dan laporan memakai pagination.                                                                 |
-| NFR-22 | (Usulan) Ukuran selfie dibatasi. Batas ditetapkan di Phase 2.                                           |
-| NFR-23 | Scheduler berjalan harian via Cron di server.                                                           |
-| NFR-24 | Jika Scheduler terlewat, sistem menyusul menetapkan Tidak Hadir untuk hari yang sudah berakhir.         |
-| NFR-25 | Zona waktu Asia/Jakarta konsisten.                                                                      |
-| NFR-26 | Backup berkala database dan file selfie.                                                                |
-| NFR-27 | Data anggota dan selfie tidak ada di repository PUBLIC.                                                 |
-| NFR-28 | Perubahan struktur database lewat migration.                                                            |
-| NFR-29 | Laravel MVC, modular, tanpa overengineering.                                                            |
-| NFR-30 | KARAKSA WASTE terpisah.                                                                                 |
-| NFR-31 | Kompatibilitas package dengan Laravel 13 dan PHP 8.5 diperiksa sebelum dipasang.                        |
-| NFR-32 | Dokumentasi diperbarui sesuai kondisi aktual.                                                           |
-| NFR-33 | (Usulan) Browser modern Android/iOS dan laptop. Kamera dan GPS di browser memerlukan HTTPS.             |
-
-## 6. Use Case
-
-| Kode  | Use case                                         | Aktor          | Terkait FR                       |
-| ----- | ------------------------------------------------ | -------------- | -------------------------------- |
-| UC-01 | Login admin (tanpa geofence)                     | Administrator  | FR-06, FR-13                     |
-| UC-02 | Login anggota (dengan geofence)                  | Anggota        | FR-06, FR-09 sampai FR-12        |
-| UC-03 | Logout                                           | Admin, Anggota | FR-06                            |
-| UC-04 | Ganti password sendiri                           | Admin, Anggota | FR-05                            |
-| UC-05 | Kelola akun anggota                              | Administrator  | FR-01 sampai FR-04               |
-| UC-06 | Ubah kategori jadwal anggota                     | Administrator  | FR-03, FR-15 sampai FR-18        |
-| UC-07 | Atur koordinat posko dan radius                  | Administrator  | FR-14                            |
-| UC-08 | Buat QR absensi                                  | Administrator  | FR-19, FR-20                     |
-| UC-09 | Absensi (geofence, QR, selfie)                   | Anggota        | FR-10, FR-21 sampai FR-28, FR-33 |
-| UC-10 | Lihat status, riwayat, statistik, selfie pribadi | Anggota        | FR-39 sampai FR-42               |
-| UC-11 | Pantau absensi semua anggota                     | Administrator  | FR-34 sampai FR-37               |
-| UC-12 | Laporan dan ekspor Excel/PDF                     | Administrator  | FR-43 sampai FR-45               |
-| UC-13 | Tetapkan Tidak Hadir otomatis                    | Sistem         | FR-29 sampai FR-32               |
-| UC-14 | Catat activity log admin                         | Sistem         | FR-46                            |
-
-## 7. Diagram Alur
-
-### 7.1 Login anggota (dengan geofence)
-
-```mermaid
-flowchart TD
-    A([Mulai]) --> B[Buka halaman login]
-    B --> C[Browser meminta izin lokasi]
-    C --> D{Izin diberikan?}
-    D -- Tidak --> X1[Tolak: izin lokasi wajib]
-    D -- Ya --> E[Ambil koordinat dan akurasi GPS]
-    E --> F{Akurasi cukup?}
-    F -- Tidak --> X2[Minta coba lagi]
-    F -- Ya --> G[Kirim kredensial dan koordinat ke server]
-    G --> H{Kredensial benar?}
-    H -- Tidak --> X3[Tolak: login gagal]
-    H -- Ya --> I[Server hitung jarak ke posko dengan Haversine]
-    I --> J{Jarak 30 m atau kurang?}
-    J -- Tidak --> X4[Tolak: di luar radius posko]
-    J -- Ya --> K[Login berhasil]
-    K --> L([Dashboard anggota])
-```
-
-Login admin sama, tanpa langkah izin lokasi dan jarak.
-
-### 7.2 Absensi anggota
-
-```mermaid
-flowchart TD
-    A([Anggota sudah login]) --> B{Hari ini hari wajib?}
-    B -- Tidak --> X1[Tombol absensi tidak aktif]
-    B -- Ya --> C{Sudah Hadir hari ini?}
-    C -- Ya --> X2[Tolak: absensi sudah tercatat]
-    C -- Tidak --> D[Ambil lokasi GPS]
-    D --> E{Izin dan akurasi baik?}
-    E -- Tidak --> X3[Tolak atau minta coba lagi]
-    E -- Ya --> F[Scan QR]
-    F --> G{Token QR valid, belum kedaluwarsa, sesi valid?}
-    G -- Tidak --> X4[Tolak: QR tidak valid]
-    G -- Ya --> H{Jarak 30 m atau kurang?}
-    H -- Tidak --> X5[Tolak: di luar radius]
-    H -- Ya --> I[Buka kamera depan dan ambil selfie]
-    I --> J{Kamera tersedia?}
-    J -- Tidak --> X6[Absensi tidak dapat diselesaikan]
-    J -- Ya --> K[Tampilkan preview, anggota kirim]
-    K --> L{Tipe dan ukuran file valid?}
-    L -- Tidak --> X7[Tolak: foto tidak valid]
-    L -- Ya --> M[Transaction: simpan absensi, lokasi, selfie]
-    M --> N{Unique tanggal lolos?}
-    N -- Tidak --> X2
-    N -- Ya --> O([Status Hadir])
-```
-
-Urutan scan QR lalu selfie adalah usulan. Urutan final dikunci di Phase 2.
-
-### 7.3 Penetapan Tidak Hadir otomatis
-
-```mermaid
-flowchart TD
-    A([Scheduler berjalan setelah pergantian tanggal]) --> B[Ambil tanggal yang sudah berakhir, zona Asia/Jakarta]
-    B --> C[Untuk tiap anggota]
-    C --> D{Tanggal itu hari wajib?}
-    D -- Tidak --> E[Lewati]
-    D -- Ya --> F{Sudah ada absensi Hadir?}
-    F -- Ya --> E
-    F -- Tidak --> G[Tetapkan Tidak Hadir]
-    G --> H([Selesai])
-    E --> H
-```
-
-## 8. Keputusan Terbuka (dibawa ke Phase 2 dan seterusnya)
-
-- Koordinat posko: belum ada, diminta di Phase 5. Tidak dikarang.
-- Durasi kedaluwarsa QR: belum diputuskan. Rekomendasi dan persetujuan sebelum implementasi (Phase 7).
-- Arti "sesi absensi" (FR-20): QR per hari atau dibuat kapan saja oleh admin. Dibahas di Phase 2.
-- Identitas login (FR-01): email atau username. Dibahas di Phase 2.
-- Urutan langkah absensi (QR lalu selfie) dan batas ukuran selfie: dikunci di Phase 2.
-- Pilihan frontend: Phase 2.
-- Cara uji kamera dan GPS di smartphone saat pengembangan (butuh HTTPS atau localhost): Phase 2.
-
-## 9. Status Phase 1
-
-- Bagian 1 sampai 5 (aktor, FR, NFR, use case, diagram, ringkasan business rules): Dibuat.
-- Menunggu persetujuan pemilik proyek sebelum Phase 2 (System Design). Tidak ada coding sebelum analisis dan desain disetujui.
-
-# PHASE 2 - SYSTEM DESIGN
-
-## KKN MANAGEMENT SYSTEM - Modul 1 Sistem Absensi
-
-Terakhir diperbarui: 2026-11-06
-Status: Dibuat (draf desain, menunggu persetujuan pemilik proyek). Belum ada kode, belum ada migration, database tidak diubah.
-
-## 1. Keputusan Desain yang Sudah Disetujui
-
-| Topik             | Keputusan                                                                                                                                                                                           |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frontend          | Blade + Bootstrap 5. Kecocokan versi dengan Vite diperiksa di Phase 3 sebelum dipasang.                                                                                                             |
-| Identitas login   | Username (bukan email). Kolom username ditambah lewat migration di Phase 4. NIM dan nomor HP tidak dipakai.                                                                                         |
-| Sesi QR           | Satu sesi per tanggal. Satu QR dipindai semua anggota. Satu absensi berhasil per anggota per tanggal. Admin dapat menutup sesi lebih awal.                                                          |
-| Kirim absensi     | Sekali kirim: GPS, QR, dan selfie dikirim sekaligus dalam satu permintaan. Server memvalidasi semuanya lalu menyimpan dalam satu transaction. Jika satu langkah gagal, tidak ada absensi tersimpan. |
-| Status Menunggu   | Tidak disimpan di database. Dihitung: hari ini hari wajib dan belum ada baris absensi.                                                                                                              |
-| Kategori          | Tiga kategori tetap (Stay, Shift Malam, Weekend). Hari wajibnya ditetapkan di kode. Admin mengubah kategori anggota, bukan isi kategori.                                                            |
-| Snapshot kategori | Kategori anggota disimpan di baris absensi agar laporan lama tidak berubah saat kategori diubah.                                                                                                    |
-| Token QR          | Disimpan sebagai hash, bukan token asli.                                                                                                                                                            |
-
-## 2. Rancangan Database (Direncanakan, belum dibuat)
-
-```mermaid
-erDiagram
-    users ||--o{ attendances : "memiliki"
-    users ||--o{ attendance_sessions : "dibuat oleh admin"
-    users ||--o{ activity_logs : "dilakukan oleh admin"
-    attendance_sessions ||--o{ attendances : "dipakai untuk"
-
-    users {
-        bigint id PK
-        string name
-        string username UK
-        string password
-        string role
-        string schedule_category
-        boolean is_active
-    }
-    attendance_sessions {
-        bigint id PK
-        date session_date
-        string token_hash UK
-        datetime opens_at
-        datetime expires_at
-        datetime closed_at
-        bigint created_by FK
-    }
-    attendances {
-        bigint id PK
-        bigint user_id FK
-        date attendance_date
-        string status
-        string category_snapshot
-        bigint attendance_session_id FK
-        datetime attended_at
-        decimal latitude
-        decimal longitude
-        float accuracy_m
-        float distance_m
-        string selfie_path
-    }
-    settings {
-        bigint id PK
-        string key UK
-        text value
-    }
-    activity_logs {
-        bigint id PK
-        bigint user_id FK
-        string action
-        text description
-        string ip_address
-        datetime created_at
-    }
-```
-
-### 2.1 users (tabel bawaan, kolom ditambah di Phase 4)
-
-| Kolom baru        | Keterangan                                      |
-| ----------------- | ----------------------------------------------- |
-| username          | Unik, dipakai untuk login.                      |
-| role              | admin atau anggota.                             |
-| schedule_category | stay, shift_malam, weekend. Kosong untuk admin. |
-| is_active         | Akun dapat dinonaktifkan tanpa dihapus.         |
-| email             | Dijadikan boleh kosong.                         |
-
-### 2.2 settings
-
-| Kunci                           | Isi                                                                        |
-| ------------------------------- | -------------------------------------------------------------------------- |
-| posko_latitude, posko_longitude | Kosong sampai pemilik proyek memberi koordinat di Phase 5. Tidak dikarang. |
-| geofence_radius_m               | 30                                                                         |
-| max_gps_accuracy_m              | Batas akurasi GPS. Angka diputuskan di Phase 5.                            |
-
-### 2.3 attendance_sessions
-
-Satu baris per sesi QR. token_hash menyimpan hash token. expires_at mengikuti durasi yang disetujui di Phase 7. closed_at diisi jika admin menutup sesi lebih awal.
-
-### 2.4 attendances
-
-- Satu baris per anggota per tanggal wajib.
-- Unique (user_id, attendance_date) menegakkan satu absensi per anggota per tanggal.
-- status hanya hadir atau tidak_hadir.
-- Baris hadir dibuat saat anggota absen. Baris tidak_hadir dibuat oleh Scheduler dengan kolom lokasi, selfie, dan sesi kosong.
-- selfie_path menunjuk ke storage privat.
-
-### 2.5 activity_logs
-
-Mencatat tindakan admin: buat akun, reset password, ubah kategori, ubah pengaturan, buat atau tutup QR, ekspor laporan.
-
-### 2.6 Tidak dimasukkan (sengaja)
-
-- Log percobaan login di luar radius: tidak ada di aturan bisnis.
-- Tabel kategori terpisah: tiga kategori tetap.
-
-## 3. Route dan Middleware (Direncanakan, belum dibuat)
-
-### 3.1 Semua pengguna
-
-| Method   | URL       | Fungsi                                      | Middleware            |
-| -------- | --------- | ------------------------------------------- | --------------------- |
-| GET      | /         | Arahkan ke login atau dashboard sesuai role | -                     |
-| GET      | /login    | Form login                                  | guest                 |
-| POST     | /login    | Proses login (anggota: cek geofence)        | guest, throttle login |
-| POST     | /logout   | Logout                                      | auth                  |
-| GET, PUT | /password | Ganti password sendiri                      | auth, aktif           |
-
-### 3.2 Administrator (prefix /admin; middleware auth, aktif, role:admin)
-
-| Method    | URL                                      | Fungsi                               |
-| --------- | ---------------------------------------- | ------------------------------------ |
-| GET       | /admin/dashboard                         | Statistik ringkas                    |
-| GET, POST | /admin/anggota, /admin/anggota/create    | Daftar dan buat akun anggota         |
-| GET, PUT  | /admin/anggota/{user}/edit               | Ubah data dan kategori jadwal        |
-| POST      | /admin/anggota/{user}/reset-password     | Reset password                       |
-| PATCH     | /admin/anggota/{user}/aktif              | Aktifkan atau nonaktifkan akun       |
-| GET, PUT  | /admin/pengaturan                        | Koordinat posko, radius, akurasi GPS |
-| GET, POST | /admin/sesi-absensi                      | Daftar dan buat sesi QR              |
-| GET       | /admin/sesi-absensi/{sesi}               | Tampilkan QR                         |
-| POST      | /admin/sesi-absensi/{sesi}/tutup         | Tutup sesi lebih awal                |
-| GET       | /admin/absensi                           | Riwayat semua anggota dengan filter  |
-| GET       | /admin/absensi/{absensi}                 | Detail: lokasi, QR, selfie           |
-| GET       | /admin/absensi/{absensi}/selfie          | Menampilkan selfie (privat)          |
-| GET       | /admin/laporan                           | Laporan dan filter                   |
-| GET       | /admin/laporan/export/excel, /export/pdf | Ekspor                               |
-| GET       | /admin/log-aktivitas                     | Activity log                         |
-
-### 3.3 Anggota (prefix /anggota; middleware auth, aktif, role:anggota)
-
-| Method | URL                       | Fungsi                                     | Tambahan              |
-| ------ | ------------------------- | ------------------------------------------ | --------------------- |
-| GET    | /anggota/dashboard        | Status hari ini, profil, statistik pribadi | -                     |
-| GET    | /anggota/absensi          | Halaman absensi (GPS, scan QR, selfie)     | -                     |
-| POST   | /anggota/absensi          | Kirim absensi sekaligus                    | throttle absensi      |
-| GET    | /anggota/riwayat          | Riwayat pribadi                            | -                     |
-| GET    | /anggota/selfie/{absensi} | Selfie milik sendiri                       | Policy: hanya pemilik |
-
-### 3.4 Middleware dan pengaman
-
-| Lapisan            | Fungsi                                                             |
-| ------------------ | ------------------------------------------------------------------ |
-| auth               | Harus sudah login.                                                 |
-| aktif              | Menolak akun dengan is_active = false, termasuk yang sedang login. |
-| role               | Memisahkan area admin dan anggota. Akses silang mendapat 403.      |
-| Policy Absensi     | Anggota hanya dapat membuka selfie dan data miliknya.              |
-| Rate limit login   | Usulan: 5 percobaan per menit per kombinasi username dan IP.       |
-| Rate limit absensi | Usulan: 10 kiriman per menit per pengguna.                         |
-
-Angka rate limit adalah usulan awal dan dapat diubah saat pengujian di Phase 13.
-
-### 3.5 Catatan desain
-
-1. Geofence bukan middleware di semua halaman. Pengecekan jarak (Haversine) dilakukan oleh satu service yang dipanggil saat login dan saat kirim absensi. Anggota yang sudah login boleh membuka dashboard dari mana saja, tetapi tidak dapat absen di luar radius.
-2. Selfie tidak pernah diakses lewat URL publik, hanya lewat route yang memeriksa hak akses. Karena sudah ada route bawaan storage/{path}, konfigurasi disk file diperiksa di Phase 3 agar selfie disimpan di disk privat yang tidak dilayani route itu.
-
-### 3.6 Scheduler
-
-Satu perintah terjadwal (misalnya attendance:close-day) berjalan setiap hari sesaat setelah tengah malam WIB dan menetapkan Tidak Hadir untuk hari yang sudah berakhir. Perintah ini juga menyusul hari yang terlewat. Dijadwalkan di routes/console.php.
-
-## 4. Rancangan Antarmuka (UI/UX)
-
-### 4.1 Prinsip
-
-- Mobile-first: satu kolom di smartphone, tata letak melebar di laptop.
-- Bootstrap 5 dengan komponen standar (kartu, form, badge, tabel, navbar, offcanvas).
-- Tombol utama besar (tinggi minimal sekitar 48 px) agar mudah ditekan satu tangan.
-- Semua teks dan pesan berbahasa Indonesia.
-- Status tidak hanya dibedakan warna, tetapi juga teks dan ikon.
-
-### 4.2 Status
-
-| Status      | Warna  | Ikon    | Teks        |
-| ----------- | ------ | ------- | ----------- |
-| Hadir       | Hijau  | Centang | Hadir       |
-| Menunggu    | Kuning | Jam     | Menunggu    |
-| Tidak Hadir | Merah  | Silang  | Tidak Hadir |
-
-Hari tidak wajib ditampilkan netral (abu-abu) dengan teks "Hari ini bukan hari wajib". Tidak ada tombol absensi pada hari itu.
-
-### 4.3 Halaman anggota
-
-| Halaman        | Isi                                                                                                                                                                            |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Login          | Username, password, tombol Masuk. Sebelum kirim, browser meminta izin lokasi. Pesan error jelas.                                                                               |
-| Dashboard      | Kartu status hari ini (badge), info hari wajib, tombol Absen besar (hanya hari wajib dan belum hadir), statistik pribadi ringkas (hari wajib, Hadir, Tidak Hadir, persentase). |
-| Absensi        | Tiga langkah berurutan di satu layar: 1) Lokasi, 2) Scan QR, 3) Selfie dengan preview. Tombol Kirim aktif setelah ketiganya siap.                                              |
-| Riwayat        | Daftar kartu per tanggal (status, jam, foto kecil milik sendiri) dengan pagination.                                                                                            |
-| Ganti password | Password lama, baru, konfirmasi.                                                                                                                                               |
-
-Sketsa dashboard anggota (smartphone):
-
-```
-+--------------------------+
-| KKN Kelompok 30   [Menu] |
-+--------------------------+
-| Halo, <nama>             |
-| Kategori: Stay           |
-+--------------------------+
-| Hari ini                 |
-| [Menunggu]               |
-| Hari ini hari wajib      |
-| [      ABSEN SEKARANG   ]|
-+--------------------------+
-| Statistik saya           |
-| Wajib 12 | Hadir 11      |
-| Tidak Hadir 1 | 92%      |
-+--------------------------+
-| Riwayat terbaru ...      |
-+--------------------------+
-```
-
-Sketsa halaman absensi:
-
-```
-+--------------------------+
-| Absensi                  |
-+--------------------------+
-| 1 Lokasi     [Siap]      |
-|   Jarak ke posko: OK     |
-| 2 Scan QR    [Siap]      |
-| 3 Selfie     [Preview]   |
-|   (foto dari kamera)     |
-+--------------------------+
-| [        KIRIM          ]|
-+--------------------------+
-```
-
-Angka pada sketsa hanya contoh tata letak, bukan data nyata.
-
-### 4.4 Halaman administrator
-
-Di laptop: sidebar tetap. Di smartphone: sidebar menjadi menu geser (offcanvas).
-
-| Halaman       | Isi                                                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard     | Kartu statistik: jumlah anggota, Hadir hari ini, Menunggu, Tidak Hadir. Status sesi QR hari ini.                                   |
-| Anggota       | Tabel anggota (nama, username, kategori, aktif), tombol tambah, ubah, reset password, nonaktifkan.                                 |
-| Sesi Absensi  | Buat sesi untuk tanggal tertentu, tampilkan QR ukuran besar di layar, tombol tutup sesi.                                           |
-| Absensi       | Tabel riwayat dengan filter tanggal, nama, kategori, status. Klik baris untuk detail (lokasi, selfie, QR).                         |
-| Laporan       | Pilih jenis (harian, mingguan, bulanan, per anggota, per kategori, rentang tanggal), tampilkan hasil, tombol ekspor Excel dan PDF. |
-| Pengaturan    | Koordinat posko, radius, batas akurasi GPS.                                                                                        |
-| Log aktivitas | Daftar tindakan admin dengan pagination.                                                                                           |
-
-### 4.5 Pesan error utama (bahasa Indonesia)
-
-| Kondisi               | Pesan                                                         |
-| --------------------- | ------------------------------------------------------------- |
-| Izin lokasi ditolak   | Izin lokasi wajib diaktifkan untuk melanjutkan.               |
-| Akurasi GPS buruk     | Sinyal lokasi kurang akurat. Coba lagi di tempat terbuka.     |
-| Di luar radius        | Anda berada di luar area posko.                               |
-| QR tidak valid        | QR tidak valid atau sudah kedaluwarsa.                        |
-| Sudah absen           | Absensi hari ini sudah tercatat.                              |
-| Kamera tidak tersedia | Kamera tidak dapat diakses. Absensi tidak dapat diselesaikan. |
-| Foto tidak valid      | Foto tidak valid. Ambil ulang selfie.                         |
-| Akun nonaktif         | Akun Anda dinonaktifkan. Hubungi admin.                       |
-| Login gagal           | Username atau password salah.                                 |
-
-## 5. Keputusan Terbuka
-
-| Topik                                                                                | Diputuskan di                                              |
-| ------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| Koordinat posko                                                                      | Phase 5 (dari pemilik proyek, tidak dikarang)              |
-| Batas akurasi GPS                                                                    | Phase 5                                                    |
-| Durasi kedaluwarsa QR                                                                | Phase 7 (rekomendasi dan persetujuan sebelum implementasi) |
-| Library pembuat dan pemindai QR                                                      | Phase 7 (cek kompatibilitas lebih dulu)                    |
-| Batas ukuran dan tipe selfie                                                         | Phase 8                                                    |
-| Cara uji kamera dan GPS di smartphone saat pengembangan (butuh HTTPS atau localhost) | Phase 3                                                    |
-| Konfigurasi disk privat untuk selfie                                                 | Phase 3                                                    |
-| Angka rate limit final                                                               | Phase 13                                                   |
-
-## 6. Status Phase 2
-
-- Rancangan database, route, middleware, scheduler, dan antarmuka: Dibuat.
-- Menunggu persetujuan pemilik proyek. Tidak ada coding sebelum desain disetujui.
-- Setelah disetujui: Phase 3 Project Foundation.
-
-## CHECKPOINT AKHIR SESI 5 (2026-11-06)
-
-Bagian ini adalah kondisi terbaru. Jika bertentangan dengan bagian lain di PROJECT_DOCS.md atau MASTER_PROMPT_v2.md, ikuti bagian ini. Kondisi repository dan kode aktual tetap sumber kebenaran utama.
-
-### Keputusan pemilik proyek (baru di sesi 5)
-
-- Alur absen final: anggota datang ke posko, memindai QR dengan kamera HP biasa, link terbuka, anggota login (geofence dicek), masuk dashboard (status Menunggu dan tombol Absen Sekarang), halaman absen langsung membuka kamera depan, anggota mengambil selfie lalu mengirim bersama lokasi, status menjadi Hadir.
-- QR hanya pintu masuk ke link. Token QR tidak lagi diperiksa di halaman absen, kolom qr_session_id disimpan null, dan tombol Cabut QR tidak lagi menghentikan absen. Konsekuensi ini sudah dijelaskan dan diterima pemilik. Perlindungan tersisa: login, geofence 50 m, selfie, dan satu absensi per hari.
-- QR berlaku satu hari (sampai 23:59 WIB). Admin mengunduh QR sebagai PNG (tombol Unduh QR) lalu boleh logout. QR tidak bisa ditampilkan ulang setelah halaman ditutup.
-- Akun raclraf adalah akun anggota sungguhan milik pemilik proyek dan tetap aktif. Catatan lama "dinonaktifkan setelah uji" tidak berlaku.
-- Radius geofence 50 m, batas akurasi GPS 50 m, selfie JPEG maksimum 5 MB.
-- Pemindai cadangan jsQR dan tombol Scan QR Absen tidak diperlukan lagi.
-- Hosting: pemilik ingin yang gratis. Belum ada keputusan.
-- Dokumentasi hanya diperbarui saat pemilik berkata sesi hampir habis. Repository PUBLIC: jangan menulis koordinat posko, password, token QR, atau nama database proyek lain.
-
-### Posisi proyek
-
-- Phase 0 sampai 7: selesai dan di-commit.
-- Phase 8 (selfie) dan Phase 9 (simpan absensi, penetapan Tidak Hadir): kode dibuat dan di-commit (67c0df4, sudah di-push). Belum terbukti sampai absensi tersimpan.
-- Phase 10 (dashboard admin): baru halaman Data Absensi (/admin/absensi). Statistik belum ada.
-- Phase 11 sampai 15: belum dimulai.
-- Git: branch main, commit terakhir yang terbukti ter-push adalah 67c0df4.
-
-### Status pekerjaan sesi 5
-
-| Bagian                                                       | Status         | Bukti                                                                                                                            |
-| ------------------------------------------------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Commit dan push 67c0df4                                      | Berhasil       | Keluaran push `af747da..67c0df4 main -> main`                                                                                    |
-| Perbaikan tipe disk di SelfieController (garis merah editor) | Dibuat         | Hasil commit dan push TIDAK terbukti. Cek git status                                                                             |
-| Halaman QR admin tanpa error                                 | Berhasil       | Tangkapan layar /admin/qr, QR tampil                                                                                             |
-| Tombol Unduh QR (PNG)                                        | Berhasil       | File PNG berisi QR hitam di latar putih                                                                                          |
-| Login anggota dengan geofence (koordinat lewat Console)      | Berhasil       | Tangkapan layar masuk /anggota                                                                                                   |
-| Dashboard anggota status Menunggu                            | Berhasil       | Tangkapan layar badge Menunggu                                                                                                   |
-| Tombol Absen Sekarang di dashboard                           | Belum terbukti | Halaman /anggota/absen terbuka, tetapi belum dipastikan lewat tombol                                                             |
-| Halaman absen tanpa token, kamera depan, preview             | Berhasil       | Tangkapan layar kamera dan preview                                                                                               |
-| Pembalikan mirror kamera (video dan foto)                    | Dibuat         | Arah gambar berubah di tangkapan layar. Kebenaran arah belum diuji dengan tulisan                                                |
-| Server menolak akurasi GPS laptop                            | Berhasil       | Pesan "Akurasi GPS kurang baik" saat login dan saat kirim absen                                                                  |
-| Simpan absen dan selfie ke disk dan tabel                    | Belum terbukti | Dilewati karena laptop. Attendance::count() terakhir terverifikasi 0 di sesi 4                                                   |
-| Halaman Data Absensi admin (/admin/absensi)                  | Berhasil       | Tangkapan layar halaman kosong dengan filter tanggal                                                                             |
-| Tombol Data Absensi di dashboard admin                       | Dibuat         | Belum dipastikan diklik                                                                                                          |
-| Tampilan baris data, filter nama, tombol Lihat selfie        | Belum terbukti | Belum ada data absensi                                                                                                           |
-| Badge Tidak Hadir di Data Absensi                            | Dibuat         | Belum dilihat di browser                                                                                                         |
-| Command absensi:tutup-hari                                   | Dibuat         | Terdaftar di `php artisan list absensi`. Dry-run memeriksa 0 anggota karena raclraf dibuat 2026-11-06 WIB. Logika belum terbukti |
-| Jadwal harian 00:05                                          | Dibuat         | `schedule:list` menampilkan `5 0 * * *`. Jalan otomatis butuh cron di server                                                     |
-
-### Kesalahan yang terjadi dan solusinya
-
-- Teks dashboard menulis "Pindai QR di posko untuk absen". Itu menyesatkan karena QR hanya pintu masuk. Teks diganti.
-- Rancangan awal AbsenController menyimpan token QR di sesi lalu halaman absen mewajibkannya, sehingga muncul "QR tidak dikenali". Diperbaiki dengan menghapus pemeriksaan token (lihat keputusan pemilik).
-- Garis merah editor di SelfieController baris `response` (Intelephense menganggap method tidak ada). Bukan error runtime. Diperbaiki dengan anotasi FilesystemAdapter.
-- Pesan akurasi GPS di laptop bukan bug, melainkan geofence berfungsi. Akurasi GPS asli hanya bisa diuji di smartphone.
-
-### Hal yang belum dipastikan (periksa di awal sesi)
-
-- Apakah perbaikan SelfieController sudah di-commit dan di-push: `git status` dan `git log --oneline -3`.
-- Pengaturan APP_URL, SESSION_DOMAIN, SESSION_SECURE_COOKIE di .env dan isi bootstrap/app.php (middleware trustProxies). Perlu dibaca sebelum uji lewat tunnel. Jangan menampilkan baris rahasia di .env.
-- Nilai cadangan radius di GeofenceService masih 30 (belum disamakan 50).
-- Tombol Absen Sekarang, tombol Data Absensi, dan arah kamera belum dibuktikan di browser.
-
-### Keputusan terbuka
-
-- Hosting permanen. Syarat dari kode: PHP 8.3 atau lebih baru (composer.json `^8.3`), HTTPS (kamera dan GPS di HP wajib HTTPS), MySQL, cron tiap menit untuk schedule:run, SSH untuk composer dan migrate, penyimpanan selfie yang permanen dan tidak dibuka publik.
-- Hasil pengecekan hosting gratis (belum diuji langsung, syarat bisa berubah): InfinityFree tidak punya SSH dan cron di paket gratis, sehingga penetapan Tidak Hadir otomatis tidak jalan. Vercel punya filesystem hanya-baca (tulis hanya /tmp), sehingga disk selfie perlu penyimpanan eksternal. VM gratis dari cloud besar (Google Cloud e2-micro, Oracle Always Free) memenuhi syarat tetapi pemilik harus memasang PHP, Nginx, dan MySQL sendiri.
-- Uji HP tanpa hosting: Cloudflare Quick Tunnel (gratis, tanpa akun, URL trycloudflare.com sementara, hanya untuk uji, tanpa jaminan uptime). Selama tunnel menyala, halaman login terbuka untuk siapa pun yang tahu URL. Pastikan password admin kuat dan tutup tunnel setelah uji.
-- Cara admin mengoreksi status absensi yang salah (belum dibuat).
-- Kebijakan laporan bila kategori anggota berubah di tengah periode (rekomendasi: pakai category_snapshot).
-- Akun anggota sungguhan dibuat mendekati deployment, setelah uji GPS asli di smartphone.
-
-### Langkah selanjutnya (satu langkah kecil per giliran)
-
-1. Jalankan `git status` dan `git log --oneline -3`. Jika perbaikan SelfieController belum ter-commit, commit dan push setelah persetujuan.
-2. Baca pengaturan .env (hanya APP_URL, SESSION_DOMAIN, SESSION_SECURE_COOKIE) dan bootstrap/app.php, lalu siapkan aplikasi untuk berjalan di belakang tunnel HTTPS (trustProxies bila perlu).
-3. Pasang cloudflared (`winget install --id Cloudflare.cloudflared`), jalankan quick tunnel, lalu uji absen dari HP. Bukti berhasil: Attendance::count() bernilai 1 dan ada satu file .jpg di storage/app/private/selfie.
-4. Besok pagi: `php artisan absensi:tutup-hari --dry-run`. Jangan jalankan tanpa --dry-run sebelum yakin, karena raclraf adalah akun sungguhan dan akan ditandai Tidak Hadir bila tidak ada absensi hari itu.
-5. Putuskan hosting permanen, lalu uji 18 akun.
-6. Lanjut Phase 10 (statistik dashboard admin) atau Phase 12 (laporan dan ekspor).
-
-### Cara kerja yang diminta pemilik proyek
-
-- Pemilik proyek menjawab cepat dan singkat. Beri daftar keputusan yang ringkas.
-- Satu langkah kecil per giliran. Hal yang tidak bisa diuji sekarang harus disebut di awal pesan.
-- Jangan memberi saran ulang yang sudah diputuskan pemilik. Bila pemilik berkata sudah, catat sebagai klaim pemilik dan jangan membantah, tetapi bedakan dari yang terbukti.
-- Commit dan push hanya dengan persetujuan jelas. Beri satu perintah dengan pengaman (.env, node_modules, .sqlite tidak ikut staging).
-- Migration hanya setelah kata "setuju migration".
-- Jika tidak bisa mengakses folder lokal, beri isi file lengkap dan jangan mengaku sudah mengubah file.
-- Jangan menulis perintah findstr berantai dalam satu baris, dan jangan menulis kode PHP atau JavaScript di blok yang bisa terbaca sebagai perintah terminal.
-- Langkah pertama sesi baru: baca checkpoint ini, jalankan git status dan git log --oneline -3, lalu lanjut sesuai Langkah selanjutnya.
+Bandingkan dengan bagian 7. Jika ada perubahan yang belum di-commit, lindungi dulu dan jangan menyarankan `restore`, `reset`, atau `checkout`. Setelah itu lanjutkan sesuai bagian 9.
