@@ -5,7 +5,14 @@
 @section('content')
 <div class="card shadow-sm">
     <div class="card-body">
-        <h1 class="h4 mb-3">Data Absensi</h1>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h1 class="h4 mb-0">Data Absensi</h1>
+            <a href="{{ url('admin/absensi/koreksi') }}" class="btn btn-outline-primary btn-sm">Koreksi Absensi</a>
+        </div>
+
+        @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
 
         @if ($errors->any())
         <div class="alert alert-danger">{{ $errors->first() }}</div>
@@ -42,6 +49,7 @@
                         <th>Jarak (m)</th>
                         <th>Akurasi (m)</th>
                         <th>Selfie</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,10 +75,13 @@
                             -
                             @endif
                         </td>
+                        <td>
+                            <a href="{{ url('admin/absensi/koreksi') }}" class="btn btn-outline-warning btn-sm">Koreksi</a>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">Belum ada data absensi pada rentang ini.</td>
+                        <td colspan="9" class="text-center text-muted py-4">Belum ada data absensi pada rentang ini.</td>
                     </tr>
                     @endforelse
                 </tbody>

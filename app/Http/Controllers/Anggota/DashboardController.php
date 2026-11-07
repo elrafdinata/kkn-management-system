@@ -23,7 +23,7 @@ class DashboardController extends Controller
             ->first();
 
         // Menunggu tidak disimpan: dihitung dari hari wajib dan ketiadaan baris.
-        if ($attendance && $attendance->attended_at) {
+        if ($attendance && $attendance->status === 'hadir') {
             $attendanceStatus = 'hadir';
         } elseif ($attendance) {
             $attendanceStatus = 'tidak_hadir';
@@ -34,11 +34,21 @@ class DashboardController extends Controller
         }
 
         $attendedTime = null;
-        if ($attendanceStatus === 'hadir') {
+        if ($attendanceStatus === 'hadir' && $attendance->attended_at) {
             $attendedTime = Carbon::parse($attendance->attended_at)
                 ->timezone(config('app.timezone'))
                 ->format('H:i');
         }
+
+        $hadirCount = Attendance::where('user_id', $user->id)->where('status', 'hadir')->count();
+        $tidakHadirCount = Attendance::where('user_id', $user->id)->where('status', 'tidak_hadir')->count();
+        $total = $hadirCount + $tidakHadirCount;
+        $percent = $total > 0 ? (int) round($hadirCount / $total * 100) : null;
+
+        $history = Attendance::where('user_id', $user->id)
+            ->orderByDesc('attendance_date')
+            ->limit(10)
+            ->get(['id', 'attendance_date', 'status', 'attended_at']);
 
         return view('anggota.dashboard', [
             'categoryLabel' => $schedule->label($user->schedule_category),
@@ -46,6 +56,10 @@ class DashboardController extends Controller
             'todayText' => $today->locale('id')->translatedFormat('l, d F Y'),
             'attendanceStatus' => $attendanceStatus,
             'attendedTime' => $attendedTime,
+            'hadirCount' => $hadirCount,
+            'tidakHadirCount' => $tidakHadirCount,
+            'percent' => $percent,
+            'history' => $history,
         ]);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\BlockWhenImpersonating;
 use App\Http\Middleware\EnsureActive;
 use App\Http\Middleware\EnsureRole;
 use Illuminate\Foundation\Application;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureRole::class,
             'aktif' => EnsureActive::class,
+            'bukan.impersonasi' => BlockWhenImpersonating::class,
         ]);
 
         $middleware->redirectGuestsTo(fn() => route('login'));

@@ -43,7 +43,13 @@
                         <span class="badge text-bg-secondary">Nonaktif</span>
                         @endif
                     </td>
-                    <td class="text-end">
+                    <td class="text-end text-nowrap">
+                        @if ($member->is_active)
+                        <form method="POST" action="{{ route('admin.members.impersonate', $member) }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Masuk sebagai</button>
+                        </form>
+                        @endif
                         <a href="{{ route('admin.members.edit', $member) }}"
                             class="btn btn-outline-primary btn-sm">Ubah</a>
                     </td>

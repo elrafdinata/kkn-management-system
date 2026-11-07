@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\AttendanceController;
+use App\Http\Controllers\Admin\AttendanceCorrectionController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\QrController;
 use App\Http\Controllers\Admin\SettingController;
@@ -10,7 +14,6 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\SelfieController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AttendanceController;
 
 Route::view('/', 'home');
 
@@ -25,14 +28,17 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 
 Route::middleware(['auth', 'aktif'])->group(function () {
     Route::get('/ganti-password', [PasswordController::class, 'edit'])->name('password.edit');
-    Route::put('/ganti-password', [PasswordController::class, 'update'])->name('password.update');
+    Route::put('/ganti-password', [PasswordController::class, 'update'])
+        ->middleware('bukan.impersonasi')
+        ->name('password.update');
+    Route::post('/kembali-ke-admin', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
 });
 
 Route::middleware(['auth', 'aktif', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::view('/', 'admin.dashboard')->name('dashboard');
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/anggota', [MemberController::class, 'index'])->name('members.index');
         Route::get('/anggota/tambah', [MemberController::class, 'create'])->name('members.create');
@@ -41,6 +47,7 @@ Route::middleware(['auth', 'aktif', 'role:admin'])
         Route::put('/anggota/{member}', [MemberController::class, 'update'])->name('members.update');
         Route::patch('/anggota/{member}/status', [MemberController::class, 'toggleStatus'])->name('members.status');
         Route::patch('/anggota/{member}/password', [MemberController::class, 'resetPassword'])->name('members.password');
+        Route::post('/anggota/{member}/masuk-sebagai', [ImpersonationController::class, 'start'])->name('members.impersonate');
 
         Route::get('/riwayat-aktivitas', [ActivityLogController::class, 'index'])->name('logs.index');
 
@@ -52,6 +59,8 @@ Route::middleware(['auth', 'aktif', 'role:admin'])
         Route::delete('/qr', [QrController::class, 'revoke'])->name('qr.revoke');
 
         Route::get('/absensi', [AttendanceController::class, 'index'])->name('attendances.index');
+        Route::get('/absensi/koreksi', [AttendanceCorrectionController::class, 'create'])->name('attendances.correct');
+        Route::post('/absensi/koreksi', [AttendanceCorrectionController::class, 'store'])->name('attendances.correct.store');
     });
 
 Route::middleware(['auth', 'aktif', 'role:anggota'])
@@ -59,8 +68,12 @@ Route::middleware(['auth', 'aktif', 'role:anggota'])
     ->name('anggota.')
     ->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/absen', [AbsenController::class, 'show'])->middleware('throttle:20,1')->name('absen');
-        Route::post('/absen/lokasi', [AbsenController::class, 'lokasi'])->middleware('throttle:20,1')->name('absen.lokasi');
+        Route::get('/absen', [AbsenController::class, 'show'])
+            ->middleware('throttle:20,1')
+            ->name('absen');
+        Route::post('/absen/lokasi', [AbsenController::class, 'lokasi'])
+            ->middleware(['throttle:20,1', 'bukan.impersonasi'])
+            ->name('absen.lokasi');
     });
 
 Route::middleware(['auth', 'aktif', 'throttle:60,1'])
